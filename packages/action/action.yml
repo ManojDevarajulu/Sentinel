@@ -1,0 +1,12 @@
+name: "Sentinel Blast Radius"
+description: "Analyze PR blast radius before merge"
+inputs:
+  api_url:
+    description: "Sentinel API URL"
+    required: true
+  api_key:
+    description: "Sentinel API Key"
+    required: true
+runs:
+  using: "node20"
+  main: "dist/index.js"

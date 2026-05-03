@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+supabase
+celery[redis]
+redis
+httpx
+anthropic
+PyGithub
+stripe
+resend
+pytest

@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0b;
+  --color-background-2: #111114;
+  --color-background-3: #18181d;
+  
+  --color-border-main: #222228;
+  --color-border-sub: #2e2e38;
+  
+  --color-text-main: #f0f0f2;
+  --color-text-sub: #8888a0;
+  --color-text-muted: #55556a;
+  
+  --color-accent: #e8ff47;
+  --color-accent-sub: rgba(232,255,71,0.2);
+  --color-accent-bg: rgba(232,255,71,0.03);
+  
+  --color-accent-2: #47b8ff;
+  --color-accent-3: #a78bfa;
+  
+  --color-red: #ff4757;
+  --color-green: #2ed573;
+  --color-amber: #ffa502;
+  
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Syne', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: #0a0a0b;
+    --foreground: #f0f0f2;
+  }
+  
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[var(--color-background-2)] border border-[var(--color-border-main)] rounded-xl p-5;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 font-mono text-[10px] font-medium px-2 py-1 rounded;
+  }
+  .btn-primary {
+    @apply bg-[var(--color-accent)] text-black font-mono font-bold text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:opacity-90 transition-opacity;
+  }
+}

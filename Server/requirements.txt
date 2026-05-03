@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+supabase
+networkx
+celery
+redis
+# anthropic
+# stripe
+resend
+# slack_sdk
+mcp
+python-dotenv
+pytest
