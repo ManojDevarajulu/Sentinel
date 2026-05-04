@@ -3,6 +3,7 @@ services:
   - type: redis
     name: sentinel-redis
     plan: free
+    ipAllowList: []
 
   # FastAPI Backend
   - type: web
