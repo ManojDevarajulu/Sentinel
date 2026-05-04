@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
 pydantic
-pydantic-settings
 python-dotenv
 supabase
 celery[redis]

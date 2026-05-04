@@ -50,6 +50,12 @@
   .badge {
     @apply inline-flex items-center gap-1 font-mono text-[10px] font-medium px-2 py-1 rounded;
   }
+  .badge-yellow {
+    @apply bg-[rgba(232,255,71,0.08)] text-[var(--color-accent)] border border-[var(--color-accent-sub)];
+  }
+  .badge-blue {
+    @apply bg-[rgba(71,184,255,0.08)] text-[var(--color-accent-2)] border border-[rgba(71,184,255,0.2)];
+  }
   .btn-primary {
     @apply bg-[var(--color-accent)] text-black font-mono font-bold text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:opacity-90 transition-opacity;
   }
