@@ -11,6 +11,7 @@ services:
     dockerfilePath: apps/api/Dockerfile.api
     dockerContext: .
     plan: free
+    port: 8000
     envVars:
       - key: REDIS_URL
         fromService:
@@ -21,8 +22,6 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_KEY
         sync: false
-    ports:
-      - port: 8000
 
   # Celery Worker
   - type: worker
