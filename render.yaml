@@ -1,0 +1,42 @@
+services:
+  # Redis for Celery Broker
+  - type: redis
+    name: sentinel-redis
+    plan: free
+    ipAllowList: []
+
+  # FastAPI Backend
+  - type: web
+    name: sentinel-api
+    env: docker
+    dockerfilePath: apps/api/Dockerfile.api
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sentinel-redis
+          property: connectionString
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+
+  # Celery Worker
+  - type: worker
+    name: sentinel-worker
+    env: docker
+    dockerfilePath: apps/api/Dockerfile.worker
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sentinel-redis
+          property: connectionString
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
