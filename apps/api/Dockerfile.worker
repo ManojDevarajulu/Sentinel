@@ -1,0 +1,28 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies required for Bun and Celery
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
+
+# Install Python dependencies
+COPY apps/api/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy API and worker code
+COPY apps/api /app/apps/api
+
+# Copy Parser code
+COPY packages/parser /app/packages/parser
+
+# We must run from the apps/api directory so celery can find the worker module
+WORKDIR /app/apps/api
+
+CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info"]

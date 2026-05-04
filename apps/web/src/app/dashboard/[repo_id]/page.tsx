@@ -1,9 +1,10 @@
 import ReactFlowCanvas from '@/components/graph/ReactFlowCanvas'
-import { mockNodes, mockEdges } from '@/lib/supabase/client'
+import { getRepoGraph, getRepo } from '@/lib/api'
 
-export default function RepoGraphPage({ params }: { params: { repo_id: string } }) {
-  // In a real app we'd fetch the repo graph using params.repo_id
-  
+export default async function RepoGraphPage({ params }: { params: { repo_id: string } }) {
+  const repo = await getRepo(params.repo_id);
+  const graph = await getRepoGraph(params.repo_id);
+
   return (
     <div className="h-[calc(100vh-65px)] flex flex-col">
       <div className="flex-shrink-0 bg-[var(--color-background-2)] border-b border-[var(--color-border-main)] px-6 py-3 flex items-center justify-between">
@@ -12,9 +13,9 @@ export default function RepoGraphPage({ params }: { params: { repo_id: string } 
             &larr; Back
           </a>
           <div className="w-px h-4 bg-[var(--color-border-main)]"></div>
-          <h2 className="font-mono text-sm font-medium">manoj/sentinel-demo</h2>
+          <h2 className="font-mono text-sm font-medium">{repo?.full_name || 'Unknown Repo'}</h2>
           <span className="badge border border-[var(--color-border-sub)] bg-[var(--color-background-3)] text-[var(--color-text-sub)]">
-            {mockNodes.length} NODES
+            {graph.nodes.length} NODES
           </span>
         </div>
         
@@ -26,7 +27,7 @@ export default function RepoGraphPage({ params }: { params: { repo_id: string } 
       </div>
       
       <div className="flex-grow relative">
-        <ReactFlowCanvas initialNodes={mockNodes} initialEdges={mockEdges} />
+        <ReactFlowCanvas initialNodes={graph.nodes} initialEdges={graph.edges} />
       </div>
     </div>
   )

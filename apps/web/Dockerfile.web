@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy the entire monorepo
+COPY . .
+
+# Install dependencies for all workspaces
+RUN npm install
+
+# Build the Next.js frontend
+RUN npm run build --workspace=apps/web
+
+# Set environment variable for production
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+# Start the Next.js app
+CMD ["npm", "run", "start", "--workspace=apps/web"]

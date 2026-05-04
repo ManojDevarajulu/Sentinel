@@ -1,12 +1,14 @@
-import { mockRepos } from '@/lib/supabase/client'
+import { getRepos } from '@/lib/api'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const repos = await getRepos()
+
   return (
     <div className="max-w-6xl mx-auto p-8">
       <div className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--color-border-main)]">
         <div>
           <h1 className="text-2xl font-bold">Repositories</h1>
-          <p className="text-[var(--color-text-sub)] text-sm mt-1">Manage and monitor connected GitHub repositories.</p>
+          <p className="text-[var(--color-text-sub)] text-sm mt-1">Manage and monitor connected TypeScript and Python repositories.</p>
         </div>
         <button className="btn-primary flex items-center gap-2 text-xs">
           <span>+</span> CONNECT REPO
@@ -14,7 +16,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockRepos.map(repo => (
+        {repos.map(repo => (
           <a key={repo.id} href={`/dashboard/${repo.id}`} className="card hover:border-[var(--color-accent-sub)] transition-colors cursor-pointer group block">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-mono text-sm font-medium text-[var(--color-text-main)] group-hover:text-[var(--color-accent)] transition-colors">
