@@ -11,7 +11,6 @@ services:
     dockerfilePath: apps/api/Dockerfile.api
     dockerContext: .
     plan: free
-    port: 8000
     envVars:
       - key: REDIS_URL
         fromService:
