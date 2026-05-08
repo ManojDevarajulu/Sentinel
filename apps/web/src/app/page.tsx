@@ -1,9 +1,45 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function Home() {
   const [email, setEmail] = useState('')
   const [joined, setJoined] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  const handleWaitlist = async () => {
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    const { error: dbError } = await supabase
+      .from('waitlist')
+      .insert([{ email, name: '', feedback: '' }])
+    setLoading(false)
+    if (dbError) {
+      if (dbError.code === '23505') {
+        setJoined(true)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    } else {
+      setJoined(true)
+    }
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -12,8 +48,33 @@ export default function Home() {
       <section className="relative flex flex-col items-center justify-center min-h-[90vh] px-6 text-center overflow-hidden">
         {/* Background grid */}
         <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(var(--color-border-main) 1px, transparent 1px),linear-gradient(90deg,var(--color-border-main) 1px,transparent 1px)',backgroundSize:'40px 40px'}} />
-        {/* Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 blur-[120px]" style={{background:'radial-gradient(circle,var(--color-accent),transparent 70%)'}} />
+
+        {/* === YELLOW BLOB SPHERE === */}
+        <div
+          className="blob-yellow"
+          style={{
+            width: '720px',
+            height: '720px',
+            top: '45%',
+            left: '50%',
+          }}
+        />
+        {/* Secondary smaller blob for depth */}
+        <div
+          className="blob-yellow"
+          style={{
+            width: '380px',
+            height: '380px',
+            top: '30%',
+            left: '65%',
+            animationDelay: '4s',
+            animationDuration: '18s',
+            opacity: 0.07,
+          }}
+        />
+
+        {/* Sharp accent glow (existing) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full opacity-5 blur-[60px] pointer-events-none" style={{background:'radial-gradient(circle,var(--color-accent),transparent 70%)'}} />
 
         <div className="relative z-10 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 border rounded-md border-[var(--color-accent-sub)] bg-[var(--color-accent-bg)]">
@@ -44,13 +105,24 @@ export default function Home() {
                   placeholder="your@email.com"
                   className="flex-1 bg-[var(--color-background-2)] border border-[var(--color-border-sub)] rounded-md px-4 py-3 text-sm font-mono text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)]"
                 />
-                <button onClick={() => setJoined(true)} className="btn-primary px-6 py-3 text-xs">Join Waitlist</button>
+                <button onClick={handleWaitlist} disabled={loading} className="btn-primary px-6 py-3 text-xs disabled:opacity-60">{loading ? 'Joining...' : 'Join Waitlist'}</button>
               </>
             )}
           </div>
+          {error && <p className="text-xs text-[var(--color-red)] font-mono mt-2">{error}</p>}
+
+          {/* CTA buttons */}
+          <div className="flex flex-wrap gap-4 justify-center mb-16">
+            {isLoggedIn ? (
+              <a href="/dashboard" className="btn-primary px-8 py-3 text-xs">GO TO DASHBOARD →</a>
+            ) : (
+              <a href="/login" className="btn-primary px-8 py-3 text-xs">GET STARTED FREE →</a>
+            )}
+            <a href="/dashboard" className="font-mono text-xs uppercase tracking-wider px-8 py-3 rounded-md border border-[var(--color-border-sub)] text-[var(--color-text-sub)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all">VIEW DASHBOARD</a>
+          </div>
 
           {/* Mock graph card */}
-          <div className="relative w-full max-w-3xl border border-[var(--color-border-sub)] rounded-xl overflow-hidden bg-[var(--color-background-2)] p-1">
+          <div className="relative w-full max-w-3xl border border-[var(--color-border-sub)] rounded-xl overflow-hidden bg-[rgba(17,17,20,0.7)] backdrop-blur-sm p-1">
             <div className="absolute top-3 left-3 flex gap-1.5 z-10">
               <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-red)]" />
               <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-amber)]" />
@@ -122,7 +194,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               {n:'01',title:'Walk the repository',desc:'walkRepo() globs all .ts/.tsx files, skips node_modules, .next, dist, and filters files under 10 bytes. Returns sorted absolute paths.'},
-              {n:'02',title:'Parse every file\'s AST',desc:'parseFile() runs @typescript-eslint/typescript-estree on each file. Extracts static imports, dynamic imports, re-exports, and require() calls.'},
+              {n:'02',title:"Parse every file's AST",desc:'parseFile() runs @typescript-eslint/typescript-estree on each file. Extracts static imports, dynamic imports, re-exports, and require() calls.'},
               {n:'03',title:'Classify every node',desc:'classifyNode() applies 8 rules in order (path rules first, content rules second) to assign each file its NodeType. First match wins.'},
               {n:'04',title:'Resolve all imports',desc:'resolveImport() handles relative paths, bare paths, and @/* aliases. Tries 6 extension variants in order. Returns null for npm packages.'},
               {n:'05',title:'Compute importance scores',desc:'In-degree per node is counted across all edges. Score = (in-degree / max-in-degree) × 100. Middleware always gets the highest priority.'},
@@ -220,13 +292,15 @@ export default function Home() {
           <h2 className="text-4xl font-extrabold tracking-tighter mb-4">Not just for teams.<br/>For anyone who ships code.</h2>
           <p className="text-[var(--color-text-sub)] mb-10">GitHub integration, full AI summaries, MCP tooling, and semantic search over your graph — coming soon.</p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            {joined ? (
+            {isLoggedIn ? (
+              <a href="/dashboard" className="btn-primary w-full py-4 text-xs">GO TO DASHBOARD →</a>
+            ) : joined ? (
               <div className="flex-1 text-center font-mono text-sm text-[var(--color-accent)] py-3">✓ You're on the list. We'll be in touch.</div>
             ) : (
               <>
                 <input type="email" suppressHydrationWarning value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"
                   className="flex-1 bg-[var(--color-background-2)] border border-[var(--color-border-sub)] rounded-md px-4 py-3 text-sm font-mono text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)]" />
-                <button onClick={() => setJoined(true)} className="btn-primary px-6 py-3 text-xs">Join Waitlist</button>
+                <button onClick={handleWaitlist} disabled={loading} className="btn-primary px-6 py-3 text-xs disabled:opacity-60">{loading ? 'Joining...' : 'Join Waitlist'}</button>
               </>
             )}
           </div>
@@ -242,6 +316,7 @@ export default function Home() {
         </div>
         <p className="font-mono text-[10px] text-[var(--color-text-muted)]">© 2026 Sentinel. Licensed under AGPL v3.</p>
         <div className="flex items-center gap-6">
+          <a href="/" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">HOME</a>
           <a href="/dashboard" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">DASHBOARD</a>
           <a href="https://github.com" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">GITHUB</a>
           <a href="https://docs.sentinel.dev" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">DOCS</a>

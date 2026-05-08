@@ -60,3 +60,27 @@
     @apply bg-[var(--color-accent)] text-black font-mono font-bold text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:opacity-90 transition-opacity;
   }
 }
+
+/* Yellow blob float animation */
+@keyframes blobFloat {
+  0%   { transform: translate(-50%, -50%) scale(1)     translateY(0px); }
+  25%  { transform: translate(-50%, -50%) scale(1.04)  translateY(-18px) translateX(12px); }
+  50%  { transform: translate(-50%, -50%) scale(0.97)  translateY(8px)  translateX(-8px); }
+  75%  { transform: translate(-50%, -50%) scale(1.02)  translateY(-10px) translateX(6px); }
+  100% { transform: translate(-50%, -50%) scale(1)     translateY(0px); }
+}
+
+@keyframes blobPulse {
+  0%, 100% { opacity: 0.13; }
+  50%       { opacity: 0.19; }
+}
+
+.blob-yellow {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 40%, #e8ff47 0%, #c8e020 30%, transparent 70%);
+  filter: blur(90px);
+  animation: blobFloat 14s ease-in-out infinite, blobPulse 8s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}

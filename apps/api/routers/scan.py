@@ -1,16 +1,32 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from db import get_db
 from tasks.scanner import run_repo_scan
 
 router = APIRouter(prefix="/repos", tags=["repos"])
+security = HTTPBearer()
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    # Verify the Supabase JWT
+    if not credentials or not credentials.credentials:
+        raise HTTPException(status_code=401, detail="Invalid or missing token")
+        
+    db = get_db()
+    try:
+        user_response = db.auth.get_user(credentials.credentials)
+        if not user_response or not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return user_response.user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
 class ScanRequest(BaseModel):
     repo_id: str
     repo_path: str
 
 @router.post("/{repo_id}/scan")
-async def scan_repository(repo_id: str, payload: ScanRequest):
+async def scan_repository(repo_id: str, payload: ScanRequest, token: str = Depends(verify_token)):
     if repo_id != payload.repo_id:
         raise HTTPException(status_code=400, detail="Path parameter repo_id must match payload repo_id")
         

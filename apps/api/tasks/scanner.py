@@ -13,6 +13,12 @@ def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
     db = get_db()
     
     try:
+        # Sanitize and validate repo_path
+        repo_path = os.path.abspath(repo_path)
+            
+        if not os.path.exists(repo_path) or not os.path.isdir(repo_path):
+            raise ValueError(f"Invalid repository path: {repo_path}")
+            
         # Update job status to in_progress
         db.table("scan_jobs").update({"status": "in_progress"}).eq("id", job_id).execute()
         

@@ -6,10 +6,12 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies for all workspaces
+RUN npm install -g npm@latest
+RUN rm -f package-lock.json
 RUN npm install
 
 # Build the Next.js frontend
-RUN npm run build --workspace=apps/web
+RUN npm run build --workspace=frontend
 
 # Set environment variable for production
 ENV NODE_ENV=production
@@ -17,4 +19,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Start the Next.js app
-CMD ["npm", "run", "start", "--workspace=apps/web"]
+CMD ["npm", "run", "start", "--workspace=frontend"]

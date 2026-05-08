@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     SUPABASE_URL: str = "https://mock.supabase.co"
     SUPABASE_SERVICE_KEY: str = "mock-key"
+    SUPABASE_ANON_KEY: str = "mock-key"
     REDIS_URL: str = "redis://localhost:6379/0"
     ANTHROPIC_API_KEY: str = ""
     GITHUB_APP_ID: str = ""

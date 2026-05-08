@@ -30,6 +30,8 @@ services:
       - .env
     depends_on:
       - redis
+    volumes:
+      - "E:\\new downloads\\Projects\\intern react\\Life Quest\\Life Quest:/tmp/Life_Quest:ro"
 
   web:
     build:
