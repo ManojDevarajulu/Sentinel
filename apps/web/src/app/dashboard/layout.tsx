@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import { getRepos } from '@/lib/api'
 
 export const dynamic = 'force-dynamic'
@@ -58,7 +59,7 @@ export default async function DashboardLayout({
         </div>
 
         <div className="p-4 border-t border-[var(--color-border-main)] space-y-4">
-          <a href="/dashboard/profile" className="flex items-center gap-3 group">
+          <Link href="/profile" className="flex items-center gap-3 group">
             <div className="w-8 h-8 rounded-full bg-[var(--color-background-3)] flex items-center justify-center font-mono text-xs border border-[var(--color-border-sub)] group-hover:border-[var(--color-accent-sub)] transition-colors">
               P
             </div>
@@ -66,7 +67,7 @@ export default async function DashboardLayout({
               <p className="text-sm font-medium group-hover:text-[var(--color-accent)] transition-colors">Profile</p>
               <p className="text-xs text-[var(--color-text-muted)]">Manage Account</p>
             </div>
-          </a>
+          </Link>
           <a href="/admin/waitlist" className="flex items-center gap-3 group">
             <div className="w-8 h-8 rounded-full bg-[var(--color-background-3)] flex items-center justify-center font-mono text-xs border border-[var(--color-border-sub)] group-hover:border-[var(--color-accent-sub)] transition-colors">
               S

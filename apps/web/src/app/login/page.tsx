@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,12 +23,13 @@ export default function LoginPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        router.replace('/dashboard')
+        const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+        router.replace(redirectTo)
       } else {
         setCheckingAuth(false)
       }
     })
-  }, [router])
+  }, [router, searchParams])
 
   const handleGitHubLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -85,7 +87,8 @@ export default function LoginPage() {
       if (error) {
         setMessage({ type: 'error', text: error.message })
       } else {
-        router.push('/')
+        const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+        router.push(redirectTo)
       }
     }
     setLoading(false)
