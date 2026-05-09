@@ -2,10 +2,11 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies required for Bun and Celery
+# Install system dependencies required for Bun, Celery, and Git
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun

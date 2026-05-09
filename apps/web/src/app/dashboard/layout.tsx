@@ -108,15 +108,7 @@ export default function DashboardLayout({
               <p className="text-xs text-[var(--color-text-muted)]">Manage Account</p>
             </div>
           </Link>
-          <Link href="/admin/waitlist" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-background-3)] flex items-center justify-center font-mono text-xs border border-[var(--color-border-sub)] group-hover:border-[var(--color-accent-sub)] transition-colors">
-              S
-            </div>
-            <div>
-              <p className="text-sm font-medium group-hover:text-[var(--color-accent)] transition-colors">Sentinel</p>
-              <p className="text-xs text-[var(--color-text-muted)]">Admin - Waitlist</p>
-            </div>
-          </Link>
+
         </div>
       </aside>
 

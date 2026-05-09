@@ -17,10 +17,16 @@ export default function DashboardPage() {
   const [loaded, setLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [scanPath, setScanPath] = useState('')
   const [scanName, setScanName] = useState('')
-  const [scanning, setScanning] = useState(false)
-  const [scanMsg, setScanMsg] = useState('')
+  const [hasGithub, setHasGithub] = useState(false)
+
+  const [githubUrl, setGithubUrl] = useState('')
+  const [scanningGithub, setScanningGithub] = useState(false)
+  const [githubMsg, setGithubMsg] = useState('')
+
+  const [zipFile, setZipFile] = useState<File | null>(null)
+  const [uploadingZip, setUploadingZip] = useState(false)
+  const [zipMsg, setZipMsg] = useState('')
 
   const loadRepos = async () => {
     setLoading(true)
@@ -40,6 +46,10 @@ export default function DashboardPage() {
       if (!active) return
 
       if (data.session) {
+        const { data: userData } = await supabase.auth.getUser()
+        if (userData?.user?.identities) {
+           setHasGithub(userData.user.identities.some(id => id.provider === 'github'))
+        }
         await loadRepos()
       } else {
         router.replace('/login?redirectTo=/dashboard')
@@ -53,62 +63,76 @@ export default function DashboardPage() {
     }
   }, [router])
 
-  const handleScan = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!scanPath || !scanName) return
+  const linkGithub = async () => {
+    const { error } = await supabase.auth.linkIdentity({ provider: 'github', options: { redirectTo: window.location.href } })
+    if (error) alert(error.message)
+  }
 
-    setScanning(true)
-    setScanMsg('')
+  const handleGithubScan = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!githubUrl || !scanName) return
+    setScanningGithub(true)
+    setGithubMsg('')
 
     const { data: sessionData } = await supabase.auth.getSession()
     const session = sessionData?.session
-    const userId = session?.user?.id
-
-    if (!userId) {
-      setScanMsg('You must be logged in to scan a repo.')
-      setScanning(false)
-      return
-    }
+    if (!session?.user?.id) return
 
     const { data: repo, error: repoErr } = await supabase
       .from('repos')
-      .insert([{
-        user_id: userId,
-        github_repo_id: `local_${Date.now()}`,
-        repo_name: scanName,
-        default_branch: 'main'
-      }])
-      .select('id')
-      .single()
+      .insert([{ user_id: session.user.id, github_repo_id: `github_${Date.now()}`, repo_name: scanName, default_branch: 'main' }])
+      .select('id').single()
 
     if (repoErr || !repo) {
-      setScanMsg(`Failed to create repo: ${repoErr?.message || 'Unknown error'}`)
-      setScanning(false)
-      return
+      setGithubMsg(`Failed to create repo: ${repoErr?.message || 'Unknown error'}`); setScanningGithub(false); return;
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/repos/${repo.id}/scan`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/repos/${repo.id}/scan-github`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
-        },
-        body: JSON.stringify({ repo_id: repo.id, repo_path: scanPath })
+        headers: { 'Content-Type': 'application/json', ...(session.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ repo_id: repo.id, github_url: githubUrl })
       })
       const result = await res.json() as ScanApiResponse
+      if (res.ok) { setGithubMsg(`Scan started. Job ID: ${result.job_id}. Refreshing...`); await loadRepos(); } 
+      else { setGithubMsg(`Error: ${result.detail || JSON.stringify(result)}`); }
+    } catch (err: unknown) { setGithubMsg(`Could not reach API: ${err instanceof Error ? err.message : String(err)}`) }
+    setScanningGithub(false)
+  }
 
-      if (res.ok) {
-        setScanMsg(`Scan started. Job ID: ${result.job_id}. Refreshing repos...`)
-        await loadRepos()
-      } else {
-        setScanMsg(`Scan error: ${result.detail || JSON.stringify(result)}`)
-      }
-    } catch (err: unknown) {
-      setScanMsg(`Could not reach API: ${err instanceof Error ? err.message : String(err)}`)
+  const handleZipUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!zipFile || !scanName) return
+    setUploadingZip(true)
+    setZipMsg('')
+
+    const { data: sessionData } = await supabase.auth.getSession()
+    const session = sessionData?.session
+    if (!session?.user?.id) return
+
+    const { data: repo, error: repoErr } = await supabase
+      .from('repos')
+      .insert([{ user_id: session.user.id, github_repo_id: `upload_${Date.now()}`, repo_name: scanName, default_branch: 'main' }])
+      .select('id').single()
+
+    if (repoErr || !repo) {
+      setZipMsg(`Failed to create repo: ${repoErr?.message || 'Unknown error'}`); setUploadingZip(false); return;
     }
 
-    setScanning(false)
+    const formData = new FormData()
+    formData.append('file', zipFile)
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/repos/${repo.id}/upload`, {
+        method: 'POST',
+        headers: { ...(session.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: formData
+      })
+      const result = await res.json() as ScanApiResponse
+      if (res.ok) { setZipMsg(`Scan started. Job ID: ${result.job_id}. Refreshing...`); await loadRepos(); setZipFile(null); } 
+      else { setZipMsg(`Error: ${result.detail || JSON.stringify(result)}`); }
+    } catch (err: unknown) { setZipMsg(`Could not reach API: ${err instanceof Error ? err.message : String(err)}`) }
+    setUploadingZip(false)
   }
 
   return (
@@ -133,39 +157,68 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="mb-8 p-6 border border-dashed border-[var(--color-border-sub)] rounded-xl bg-[var(--color-background-2)]">
-        <p className="font-mono text-[10px] text-[var(--color-accent)] tracking-widest mb-3 uppercase">Scan a Local Repository</p>
-        <p className="text-sm text-[var(--color-text-sub)] mb-4">
-          Enter a repo name and an absolute path that the backend process can access. This is local developer mode until GitHub installation is wired into the dashboard.
-        </p>
-        <form onSubmit={handleScan} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            value={scanName}
-            onChange={event => setScanName(event.target.value)}
-            placeholder="Repo name (e.g. my-org/frontend)"
-            className="flex-1 bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
-          />
-          <input
-            type="text"
-            value={scanPath}
-            onChange={event => setScanPath(event.target.value)}
-            placeholder="Server path (e.g. E:/projects/app)"
-            className="flex-1 bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
-          />
-          <button
-            type="submit"
-            disabled={scanning || !scanPath || !scanName}
-            className="btn-primary text-xs px-5 disabled:opacity-60 whitespace-nowrap"
-          >
-            {scanning ? 'Scanning...' : 'Start Scan'}
-          </button>
-        </form>
-        {scanMsg && (
-          <p className={`mt-3 text-xs font-mono ${scanMsg.startsWith('Scan started') ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'}`}>
-            {scanMsg}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        
+        {/* GitHub Scan Section */}
+        <div className="p-6 border border-dashed border-[var(--color-border-sub)] rounded-xl bg-[var(--color-background-2)]">
+          <p className="font-mono text-[10px] text-[var(--color-accent)] tracking-widest mb-3 uppercase">Scan a GitHub Repository</p>
+          <p className="text-sm text-[var(--color-text-sub)] mb-4">
+            Connect your GitHub account and enter a public repository URL to scan.
           </p>
-        )}
+          {!hasGithub ? (
+            <button onClick={linkGithub} className="w-full bg-[#f0f0f2] hover:bg-white text-black font-mono font-bold text-xs uppercase tracking-wider py-3 rounded-lg flex items-center justify-center gap-3 transition-colors mb-2">
+              <svg height="16" viewBox="0 0 16 16" width="16" className="fill-current">
+                <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
+              </svg>
+              Connect GitHub Account
+            </button>
+          ) : (
+            <form onSubmit={handleGithubScan} className="flex flex-col gap-3">
+              <input
+                type="text" value={scanName} onChange={e => setScanName(e.target.value)} placeholder="Project Name (e.g. My App)"
+                className="w-full bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
+              />
+              <input
+                type="url" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} placeholder="https://github.com/user/repo"
+                className="w-full bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
+              />
+              <button type="submit" disabled={scanningGithub || !githubUrl || !scanName} className="btn-primary text-xs py-2.5 disabled:opacity-60">
+                {scanningGithub ? 'Scanning...' : 'Scan GitHub'}
+              </button>
+            </form>
+          )}
+          {githubMsg && (
+            <p className={`mt-3 text-xs font-mono ${githubMsg.startsWith('Scan started') ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'}`}>
+              {githubMsg}
+            </p>
+          )}
+        </div>
+
+        {/* Local ZIP Upload Section */}
+        <div className="p-6 border border-dashed border-[var(--color-border-sub)] rounded-xl bg-[var(--color-background-2)]">
+          <p className="font-mono text-[10px] text-[var(--color-accent)] tracking-widest mb-3 uppercase">Upload Local Repository (.zip)</p>
+          <p className="text-sm text-[var(--color-text-sub)] mb-4">
+            Zip your local code folder and upload it directly. The scanner will extract and analyze it.
+          </p>
+          <form onSubmit={handleZipUpload} className="flex flex-col gap-3">
+            <input
+              type="text" value={scanName} onChange={e => setScanName(e.target.value)} placeholder="Project Name (e.g. My App)"
+              className="w-full bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
+            />
+            <input
+              type="file" accept=".zip" onChange={e => setZipFile(e.target.files ? e.target.files[0] : null)}
+              className="w-full bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2 text-sm text-white file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-mono file:bg-[var(--color-background-2)] file:text-[var(--color-text-main)] hover:file:bg-[var(--color-border-main)] focus:outline-none transition-colors"
+            />
+            <button type="submit" disabled={uploadingZip || !zipFile || !scanName} className="btn-primary text-xs py-2.5 disabled:opacity-60">
+              {uploadingZip ? 'Uploading & Scanning...' : 'Upload & Scan'}
+            </button>
+          </form>
+          {zipMsg && (
+            <p className={`mt-3 text-xs font-mono ${zipMsg.startsWith('Scan started') ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'}`}>
+              {zipMsg}
+            </p>
+          )}
+        </div>
       </div>
 
       {!loaded && !error && loading && (
