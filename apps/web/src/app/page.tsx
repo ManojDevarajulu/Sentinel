@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 export default function Home() {
   const [email, setEmail] = useState('')
@@ -18,7 +19,7 @@ export default function Home() {
     setError('')
     const { error: dbError } = await supabase
       .from('waitlist')
-      .insert([{ email, name: '', feedback: '' }])
+      .insert([{ email, metadata: { source: 'landing-page' } }])
     setLoading(false)
     if (dbError) {
       if (dbError.code === '23505') {
@@ -88,13 +89,13 @@ export default function Home() {
           </h1>
 
           <p className="text-lg md:text-xl text-[var(--color-text-sub)] max-w-2xl mb-10 font-light">
-            Transforms any TypeScript or JavaScript repo into an interactive blast radius graph — with AI summaries, risk scoring, and PR guardian rules. Runs entirely on your machine. Your code never leaves.
+            Transforms TypeScript and JavaScript repos into an interactive blast radius graph with real risk scoring today. AI summaries and PR guardian workflows are planned next, after the graph loop is fully validated.
           </p>
 
           {/* Waitlist */}
           <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mb-16">
             {joined ? (
-              <div className="flex-1 text-center font-mono text-sm text-[var(--color-accent)] py-3">✓ You're on the list.</div>
+              <div className="flex-1 text-center font-mono text-sm text-[var(--color-accent)] py-3">✓ You&apos;re on the list.</div>
             ) : (
               <>
                 <input
@@ -114,11 +115,16 @@ export default function Home() {
           {/* CTA buttons */}
           <div className="flex flex-wrap gap-4 justify-center mb-16">
             {isLoggedIn ? (
-              <a href="/dashboard" className="btn-primary px-8 py-3 text-xs">GO TO DASHBOARD →</a>
+              <>
+                <Link href="/dashboard" className="btn-primary px-8 py-3 text-xs">GO TO DASHBOARD →</Link>
+                <Link href="/dashboard" className="font-mono text-xs uppercase tracking-wider px-8 py-3 rounded-md border border-[var(--color-border-sub)] text-[var(--color-text-sub)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all">VIEW DASHBOARD</Link>
+              </>
             ) : (
-              <a href="/login" className="btn-primary px-8 py-3 text-xs">GET STARTED FREE →</a>
+              <>
+                <Link href="/login" className="btn-primary px-8 py-3 text-xs">GET STARTED FREE →</Link>
+                <Link href="/login" className="font-mono text-xs uppercase tracking-wider px-8 py-3 rounded-md border border-[var(--color-border-sub)] text-[var(--color-text-sub)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all">SIGN IN</Link>
+              </>
             )}
-            <a href="/dashboard" className="font-mono text-xs uppercase tracking-wider px-8 py-3 rounded-md border border-[var(--color-border-sub)] text-[var(--color-text-sub)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all">VIEW DASHBOARD</a>
           </div>
 
           {/* Mock graph card */}
@@ -129,7 +135,7 @@ export default function Home() {
               <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-green)]" />
             </div>
             <div className="absolute top-3 right-3 z-10">
-              <span className="font-mono text-[9px] text-[var(--color-text-muted)] bg-[var(--color-background)] px-2 py-1 rounded">Real output · 312 nodes</span>
+              <span className="font-mono text-[9px] text-[var(--color-text-muted)] bg-[var(--color-background)] px-2 py-1 rounded">Prototype graph preview</span>
             </div>
             <div className="h-72 flex items-center justify-center relative">
               <GraphPreview />
@@ -142,10 +148,10 @@ export default function Home() {
       <section className="border-t border-b border-[var(--color-border-main)] py-10 px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            {val:'< 1s', label:'BLAST RADIUS LATENCY'},
-            {val:'500+', label:'NODES SUPPORTED'},
+              {val:'Real', label:'GRAPH DATA LOOP'},
+              {val:'JS/TS', label:'PARSER SUPPORT'},
             {val:'8', label:'NODE TYPES DETECTED'},
-            {val:'100%', label:'LOCAL EXECUTION'},
+              {val:'Local', label:'DEVELOPER MODE'},
           ].map(s => (
             <div key={s.label}>
               <div className="font-display text-3xl font-bold text-[var(--color-accent)]">{s.val}</div>
@@ -166,7 +172,7 @@ export default function Home() {
             {title:'BFS Blast Radius',sub:'Impact Intelligence',desc:'Instantly computes every file affected by a change using reverse Breadth-First Search — with hop distance and risk scoring at each level.',tags:['middleware','layout','api_route','component']},
             {title:'Full AST Analysis',sub:'Deep Parsing',desc:'Walks every .ts/.tsx file extracting import declarations, dynamic requires, and re-exports. Resolves aliases (@/*) and relative paths precisely.',tags:['ImportDeclaration','CallExpression','ExportAll']},
             {title:'Risk Scorer',sub:'Weighted Intelligence',desc:'Four-component score: volume affected, critical node types, average importance, and proximity. Middleware always forces a HIGH override.',tags:['Volume 40%','Critical 30%','Importance 20%','Proximity 10%']},
-            {title:'GitHub Action',sub:'PR Guardian',desc:'Auto-posts a blast radius comment on every PR. Detects existing comments and updates them — no duplicate spam. Integrates in 3 lines of YAML.',tags:['opened','synchronize','reopened']},
+            {title:'GitHub Action',sub:'PR Guardian Beta',desc:'The action is wired to read real PR changed files, call the blast-radius API, and update one marked PR comment. Validate it on real repos before treating it as production-ready.',tags:['opened','synchronize','reopened']},
             {title:'Node Classifier',sub:'Type Intelligence',desc:'8 distinct node types detected from file path and AST content — PAGE, LAYOUT, MIDDLEWARE, HOOK, API_ROUTE, COMPONENT, UTIL, SUPABASE_CLIENT.',tags:['page','middleware','hook','component']},
             {title:'AI Summaries',sub:'Coming Soon',desc:'Claude Haiku generates a business-logic summary and a technical implementation summary for every node in your graph. Summarize once, query forever.',tags:['Claude Haiku','topological order','semantic search']},
           ].map(c => (
@@ -263,7 +269,7 @@ export default function Home() {
           <div>
             <p className="font-mono text-[10px] text-[var(--color-accent)] tracking-widest mb-4">THE AI AGE PROBLEM</p>
             <h2 className="text-4xl font-extrabold tracking-tighter mb-6">AI writes it.<br/>Sentinel explains it.</h2>
-            <p className="text-[var(--color-text-sub)] leading-relaxed mb-6">Cursor, Claude Code, and Copilot let you ship faster than ever — but speed creates a new problem. Codebases grow faster than anyone can understand them. Developers merge code they didn't fully read. New hires drown in unfamiliar structure.</p>
+            <p className="text-[var(--color-text-sub)] leading-relaxed mb-6">Cursor, Claude Code, and Copilot let you ship faster than ever — but speed creates a new problem. Codebases grow faster than anyone can understand them. Developers merge code they didn&apos;t fully read. New hires drown in unfamiliar structure.</p>
             <p className="text-[var(--color-text-sub)] leading-relaxed">Sentinel turns that black box into a living, queryable blast-radius map — so your team always knows what will break, and why, before it ever merges.</p>
           </div>
           <div className="space-y-4">
@@ -293,9 +299,9 @@ export default function Home() {
           <p className="text-[var(--color-text-sub)] mb-10">GitHub integration, full AI summaries, MCP tooling, and semantic search over your graph — coming soon.</p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             {isLoggedIn ? (
-              <a href="/dashboard" className="btn-primary w-full py-4 text-xs">GO TO DASHBOARD →</a>
+              <Link href="/dashboard" className="btn-primary w-full py-4 text-xs">GO TO DASHBOARD →</Link>
             ) : joined ? (
-              <div className="flex-1 text-center font-mono text-sm text-[var(--color-accent)] py-3">✓ You're on the list. We'll be in touch.</div>
+              <div className="flex-1 text-center font-mono text-sm text-[var(--color-accent)] py-3">✓ You&apos;re on the list. We&apos;ll be in touch.</div>
             ) : (
               <>
                 <input type="email" suppressHydrationWarning value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"
@@ -316,8 +322,8 @@ export default function Home() {
         </div>
         <p className="font-mono text-[10px] text-[var(--color-text-muted)]">© 2026 Sentinel. Licensed under AGPL v3.</p>
         <div className="flex items-center gap-6">
-          <a href="/" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">HOME</a>
-          <a href="/dashboard" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">DASHBOARD</a>
+          <Link href="/" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">HOME</Link>
+          <Link href="/dashboard" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">DASHBOARD</Link>
           <a href="https://github.com" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">GITHUB</a>
           <a href="https://docs.sentinel.dev" className="font-mono text-[10px] text-[var(--color-text-muted)] hover:text-white transition-colors">DOCS</a>
         </div>

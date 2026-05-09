@@ -26,16 +26,25 @@ class ScanRequest(BaseModel):
     repo_path: str
 
 @router.post("/{repo_id}/scan")
-async def scan_repository(repo_id: str, payload: ScanRequest, token: str = Depends(verify_token)):
+async def scan_repository(repo_id: str, payload: ScanRequest, token=Depends(verify_token)):
     if repo_id != payload.repo_id:
         raise HTTPException(status_code=400, detail="Path parameter repo_id must match payload repo_id")
         
     db = get_db()
+    user_id = getattr(token, "id", None)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated user id is missing")
     
-    # Check if repo exists
-    repo = db.table("repos").select("id").eq("id", repo_id).execute()
+    # Check that the repo exists and belongs to the authenticated user
+    repo = (
+        db.table("repos")
+        .select("id, user_id")
+        .eq("id", repo_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
     if not repo.data:
-        raise HTTPException(status_code=404, detail="Repository not found")
+        raise HTTPException(status_code=404, detail="Repository not found or not owned by this user")
         
     # Insert a new scan job
     job_insert = db.table("scan_jobs").insert({

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     RESEND_API_KEY: str = ""
     PARSER_BUN_PATH: str = "../../packages/parser/src/index.ts"
+    ADMIN_EMAILS: str = ""
 
     class Config:
         env_file = ".env"

@@ -1,0 +1,788 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0b;
+  --bg2: #111114;
+  --bg3: #18181d;
+  --border: #222228;
+  --border2: #2e2e38;
+  --text: #f0f0f2;
+  --text2: #8888a0;
+  --text3: #55556a;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --accent3: #47b8ff;
+  --red: #ff4757;
+  --green: #2ed573;
+  --amber: #ffa502;
+  --purple: #a78bfa;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); overflow-x: hidden; }
+
+/* NAV */
+.nav { display: flex; gap: 2px; padding: 0 0 0 0; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,10,11,0.96); backdrop-filter: blur(12px); z-index: 100; overflow-x: auto; }
+.nav-tab { font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 12px 16px; cursor: pointer; border: none; background: none; color: var(--text3); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.03em; transition: color 0.2s; }
+.nav-tab:hover { color: var(--text2); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* PANELS */
+.panel { display: none; padding: 2rem 1.5rem 3rem; max-width: 800px; }
+.panel.active { display: block; }
+
+/* TYPOGRAPHY */
+h1 { font-family: var(--font-head); font-size: 32px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+h2 { font-family: var(--font-head); font-size: 18px; font-weight: 700; color: var(--text); margin: 2rem 0 0.75rem; }
+h3 { font-family: var(--font-head); font-size: 14px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
+p { font-size: 14px; color: var(--text2); line-height: 1.75; margin: 0 0 0.75rem; }
+.label { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin: 0 0 0.5rem; display: block; }
+
+/* HERO */
+.hero { padding: 2.5rem 0 2rem; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,255,71,0.08); border: 1px solid rgba(232,255,71,0.2); border-radius: 4px; padding: 4px 10px; margin-bottom: 1.25rem; }
+.hero-eyebrow span { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.08em; }
+.hero-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.hero h1 span { color: var(--accent); }
+.hero-sub { font-size: 16px; color: var(--text2); line-height: 1.7; margin: 1rem 0 1.5rem; max-width: 560px; font-weight: 300; }
+.stat-row { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.stat { }
+.stat-val { font-family: var(--font-head); font-size: 28px; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* CARDS */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 0 0 0.75rem; }
+.card-accent { border-color: rgba(232,255,71,0.2); background: rgba(232,255,71,0.03); }
+.card-red { border-color: rgba(255,71,87,0.2); background: rgba(255,71,87,0.03); }
+.card-blue { border-color: rgba(71,184,255,0.2); background: rgba(71,184,255,0.03); }
+.card-purple { border-color: rgba(167,139,250,0.2); background: rgba(167,139,250,0.03); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 4px; }
+.badge-yellow { background: rgba(232,255,71,0.1); color: var(--accent); border: 1px solid rgba(232,255,71,0.2); }
+.badge-red { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.2); }
+.badge-green { background: rgba(46,213,115,0.1); color: var(--green); border: 1px solid rgba(46,213,115,0.2); }
+.badge-blue { background: rgba(71,184,255,0.1); color: var(--accent3); border: 1px solid rgba(71,184,255,0.2); }
+.badge-amber { background: rgba(255,165,2,0.1); color: var(--amber); border: 1px solid rgba(255,165,2,0.2); }
+.badge-purple { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.badge-gray { background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); }
+
+/* FEATURE LIST */
+.feature-item { display: flex; gap: 14px; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.feature-item:last-child { border-bottom: none; }
+.feature-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.feature-body h3 { font-size: 14px; margin-bottom: 4px; }
+.feature-body p { font-size: 13px; margin: 0; }
+
+/* PHASE */
+.phase { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 0 0 1rem; position: relative; overflow: hidden; }
+.phase::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.phase-1::before { background: var(--accent3); }
+.phase-2::before { background: var(--green); }
+.phase-3::before { background: var(--amber); }
+.phase-4::before { background: var(--red); }
+.phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.phase-num { font-family: var(--font-mono); font-size: 10px; color: var(--text3); }
+.phase-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; }
+.phase-time { font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; background: var(--bg3); color: var(--text2); margin-left: auto; }
+.task { display: flex; gap: 10px; margin: 0 0 7px; align-items: flex-start; }
+.task-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); margin-top: 7px; flex-shrink: 0; }
+.task p { font-size: 13px; margin: 0; line-height: 1.6; }
+
+/* STACK */
+.stack-item { display: flex; gap: 14px; align-items: flex-start; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+.stack-item:last-child { border-bottom: none; }
+.stack-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); white-space: nowrap; flex-shrink: 0; min-width: 140px; text-align: center; }
+.stack-meta { }
+.stack-meta h3 { font-size: 13px; margin-bottom: 3px; }
+.stack-meta p { font-size: 12px; margin: 0; }
+
+/* DB TABLE */
+.db-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 0 0 0.75rem; }
+.db-table-header { background: var(--bg3); padding: 0.6rem 1rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.db-table-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--accent); }
+.db-field { display: flex; gap: 10px; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.db-field:last-child { border-bottom: none; }
+.db-field-name { font-family: var(--font-mono); font-size: 11px; color: var(--accent3); min-width: 140px; }
+.db-field-type { font-family: var(--font-mono); font-size: 10px; color: var(--text3); min-width: 80px; }
+.db-field-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* METRICS */
+.metric-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 0 0 1rem; }
+.metric { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+.metric-val { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
+.metric-label { font-size: 11px; color: var(--text3); margin-top: 3px; line-height: 1.4; }
+.metric-yellow .metric-val { color: var(--accent); }
+.metric-green .metric-val { color: var(--green); }
+.metric-blue .metric-val { color: var(--accent3); }
+.metric-red .metric-val { color: var(--red); }
+.metric-amber .metric-val { color: var(--amber); }
+
+/* UI SECTION */
+.ui-screen { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 0 0 1rem; }
+.ui-titlebar { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 0.6rem 1rem; display: flex; align-items: center; gap: 6px; }
+.ui-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ui-title { font-family: var(--font-mono); font-size: 11px; color: var(--text3); margin-left: 8px; }
+.ui-content { padding: 1rem; }
+
+/* ICP */
+.icp-card { border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; margin: 0 0 0.75rem; background: var(--bg2); }
+.icp-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.icp-row { display: flex; gap: 8px; margin: 0 0 5px; font-size: 13px; }
+.icp-key { color: var(--text3); min-width: 90px; font-size: 12px; }
+.icp-val { color: var(--text2); line-height: 1.5; }
+
+/* COLOR SWATCH */
+.swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 0.75rem; }
+.swatch { width: 48px; height: 48px; border-radius: 8px; position: relative; }
+.swatch span { font-family: var(--font-mono); font-size: 9px; display: block; text-align: center; margin-top: 4px; color: var(--text3); }
+
+/* FONT PREVIEW */
+.font-preview { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; margin: 0 0 0.75rem; }
+.font-preview-large { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
+.font-preview-small { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.font-name { font-family: var(--font-mono); font-size: 10px; color: var(--text3); }
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <button class="nav-tab active" onclick="show('overview')">01 OVERVIEW</button>
+  <button class="nav-tab" onclick="show('features')">02 FEATURES</button>
+  <button class="nav-tab" onclick="show('icp')">03 TARGET USERS</button>
+  <button class="nav-tab" onclick="show('stack')">04 TECH STACK</button>
+  <button class="nav-tab" onclick="show('phases')">05 PHASES</button>
+  <button class="nav-tab" onclick="show('db')">06 DATABASE</button>
+  <button class="nav-tab" onclick="show('ui')">07 UI & DESIGN</button>
+  <button class="nav-tab" onclick="show('metrics')">08 METRICS</button>
+</nav>
+
+<!-- 01 OVERVIEW -->
+<div class="panel active" id="overview">
+  <div class="hero">
+    <div class="hero-eyebrow"><div class="hero-dot"></div><span>Sentinel — PRODUCT BLUEPRINT v1.0</span></div>
+    <h1>Blast radius analysis<br>for <span>AI-generated</span> code.</h1>
+    <p class="hero-sub">Sentinel is the safety layer between your AI coding agent and your production codebase. Before any PR merges, it shows every file that will be affected — automatically, on every commit.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val">3</div><div class="stat-label">Core surfaces</div></div>
+      <div class="stat"><div class="stat-val">14wk</div><div class="stat-label">Build timeline</div></div>
+      <div class="stat"><div class="stat-val">$49/mo</div><div class="stat-label">Primary price point</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-label">AGPL dependencies</div></div>
+    </div>
+  </div>
+
+  <h2>The problem</h2>
+  <div class="card card-red">
+    <h3>AI agents write code faster than humans can understand it</h3>
+    <p>Cursor, Claude Code, and GitHub Copilot generate hundreds of lines per session. Developers ship it without knowing which other files depend on what just changed. One PR touches <code style="font-family:var(--font-mono);font-size:11px;color:var(--accent)">lib/supabase/client.ts</code> and silently breaks auth in middleware 3 hops away. Nobody finds out until production is down.</p>
+  </div>
+
+  <h2>The solution</h2>
+  <div class="card card-accent">
+    <h3>Sentinel maps your codebase as a dependency graph and computes blast radius on every PR</h3>
+    <p>It parses your TypeScript/Next.js repo using your own MIT-licensed AST engine (built with <code style="font-family:var(--font-mono);font-size:11px;color:var(--accent)">typescript-estree</code>), stores the graph in Supabase, and runs a reverse BFS traversal every time a PR is opened. The result appears as a GitHub PR comment in under 3 seconds — showing risk level, affected file count, and critical paths. Teams that use it stop shipping broken PRs.</p>
+  </div>
+
+  <h2>Three surfaces, one graph</h2>
+  <div class="grid2">
+    <div class="card">
+      <span class="label">Surface 1 — Free</span>
+      <h3>GitHub Action</h3>
+      <p>Posts blast radius analysis as a PR comment. Free forever. This is the marketing engine — every developer who sees the comment is a potential signup.</p>
+    </div>
+    <div class="card card-blue">
+      <span class="label">Surface 2 — Paid</span>
+      <h3>Web Dashboard</h3>
+      <p>Interactive dependency graph. Click any node to see what calls it, AI summary, last commits, risk heatmap. The core paid product.</p>
+    </div>
+  </div>
+  <div class="card card-purple">
+    <span class="label">Surface 3 — Moat</span>
+    <h3>MCP Server for Cursor / Claude Code</h3>
+    <p>Exposes your graph via Model Context Protocol. AI agents call <code style="font-family:var(--font-mono);font-size:11px;color:var(--purple)">get_blast_radius(file)</code> before writing code. No competitor does this. This is what makes Sentinel defensible.</p>
+  </div>
+
+  <h2>Business model</h2>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text2)"><span class="badge badge-gray">FREE</span> GitHub Action — unlimited PRs</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text)">$0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text2)"><span class="badge badge-blue">SOLO</span> Dashboard — 1 repo, full graph</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text)">$19/mo</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text2)"><span class="badge badge-green">TEAM</span> Dashboard — 5 repos + MCP server</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text)">$49/mo</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+        <span style="font-size:13px;color:var(--text2)"><span class="badge badge-amber">STUDIO</span> Unlimited repos + Slack bot</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text)">$149/mo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 FEATURES -->
+<div class="panel" id="features">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">All features</h1>
+  <p style="margin-bottom:2rem;">Ordered by build priority. Phase tells you when it ships.</p>
+
+  <h2>Phase 1 — Core engine</h2>
+  <div class="card">
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(71,184,255,0.1);">🔍</div>
+      <div class="feature-body">
+        <h3>AST Dependency Parser <span class="badge badge-blue" style="margin-left:6px;">P1</span></h3>
+        <p>Parses every .ts/.tsx file in the repo using typescript-estree. Extracts all imports, exports, function calls, React component usage, Next.js route structure, and Supabase RPC calls. Outputs a full adjacency list stored in Supabase. Runs on first connect and on every webhook push.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(255,71,87,0.1);">💥</div>
+      <div class="feature-body">
+        <h3>Blast Radius Computation <span class="badge badge-blue" style="margin-left:6px;">P1</span></h3>
+        <p>Reverse BFS from changed files. Finds every node reachable within 4 hops. Returns affected count, risk level (Low/Medium/High), risk score 0–100, and critical paths. Runs in under 800ms on a 1,000-node repo.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(46,213,115,0.1);">⚡</div>
+      <div class="feature-body">
+        <h3>GitHub Action + PR Comment <span class="badge badge-blue" style="margin-left:6px;">P1</span></h3>
+        <p>Installs in 60 seconds. Posts a formatted comment on every PR with risk badge, affected file count, top 5 critical affected files with paths, and link to dashboard. Free forever. Published on GitHub Marketplace.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Phase 2 — Auth + Dashboard v1</h2>
+  <div class="card">
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(167,139,250,0.1);">🔐</div>
+      <div class="feature-body">
+        <h3>GitHub OAuth + Repo Connection <span class="badge badge-green" style="margin-left:6px;">P2</span></h3>
+        <p>One-click login with GitHub via Supabase Auth. GitHub App installation on the repo grants read access for scanning. No passwords, no API keys for the user to manage.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(232,255,71,0.1);">🗺️</div>
+      <div class="feature-body">
+        <h3>Interactive Dependency Graph <span class="badge badge-green" style="margin-left:6px;">P2</span></h3>
+        <p>React Flow canvas. Nodes are components, hooks, API routes, pages, utilities. Edges are imports and calls. Pan, zoom, click to inspect. Color-coded by node type. Minimap for large repos.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(255,165,2,0.1);">🔥</div>
+      <div class="feature-body">
+        <h3>Risk Heatmap View <span class="badge badge-green" style="margin-left:6px;">P2</span></h3>
+        <p>Toggle from graph view to heatmap. Nodes turn amber or red based on their importance score (how many other nodes depend on them). Instantly shows the critical path of your codebase at a glance.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(71,184,255,0.1);">📋</div>
+      <div class="feature-body">
+        <h3>Node Detail Sidebar <span class="badge badge-green" style="margin-left:6px;">P2</span></h3>
+        <p>Click any node: see file path, node type, AI summary (Claude Haiku), number of direct dependencies and dependents, last 5 commits that touched this file, linked PR analyses where this node was in the blast radius.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(255,71,87,0.1);">📊</div>
+      <div class="feature-body">
+        <h3>PR Analysis History <span class="badge badge-green" style="margin-left:6px;">P2</span></h3>
+        <p>Every PR blast radius analysis is stored. Dashboard shows a timeline of all PRs with their risk scores. Filter by risk level, date, or author. Click any PR to see exactly which nodes were in the blast radius at that point in time.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Phase 3 — Polish + Payments</h2>
+  <div class="card">
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(46,213,115,0.1);">💳</div>
+      <div class="feature-body">
+        <h3>Stripe Billing + Plan Gating <span class="badge badge-amber" style="margin-left:6px;">P3</span></h3>
+        <p>Pricing page with Stripe Checkout. Plan-based feature gating in the dashboard. Webhooks sync subscription state to Supabase. 14-day trial, no credit card required.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(232,255,71,0.1);">📧</div>
+      <div class="feature-body">
+        <h3>Weekly Architecture Digest Email <span class="badge badge-amber" style="margin-left:6px;">P3</span></h3>
+        <p>Automated weekly email per repo: top 3 riskiest PRs merged, most-changed components, any new critical nodes added. Built with a cron job + Resend. Keeps users engaged even when they haven't logged in.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(167,139,250,0.1);">🔎</div>
+      <div class="feature-body">
+        <h3>Semantic Node Search <span class="badge badge-amber" style="margin-left:6px;">P3</span></h3>
+        <p>"Find all components related to payments" — pgvector search on Claude-generated node embeddings. Returns a ranked list of relevant nodes with their current risk levels. No keyword matching required.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Phase 4 — MCP Server (the moat)</h2>
+  <div class="card">
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(167,139,250,0.1);">🤖</div>
+      <div class="feature-body">
+        <h3>MCP Server for AI Agents <span class="badge badge-red" style="margin-left:6px;">P4</span></h3>
+        <p>Exposes get_blast_radius(file), get_dependents(component), get_architecture_summary(), find_component(description) via Model Context Protocol. Cursor and Claude Code query Sentinel before writing code. Authenticated via API key. Usage metered for billing.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(71,184,255,0.1);">💬</div>
+      <div class="feature-body">
+        <h3>Slack Bot Integration <span class="badge badge-red" style="margin-left:6px;">P4</span></h3>
+        <p>When a HIGH risk PR is opened, Sentinel pings the configured Slack channel with the blast radius summary and a link to the full analysis. Makes Sentinel part of the daily engineering workflow — churn drops to near zero.</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon" style="background:rgba(255,165,2,0.1);">🚦</div>
+      <div class="feature-body">
+        <h3>PR Guardian Rules (Block on HIGH) <span class="badge badge-red" style="margin-left:6px;">P4</span></h3>
+        <p>Optional GitHub status check that blocks PR merge if blast radius risk exceeds a configurable threshold. Teams set their own rules: "never merge if middleware.ts is in blast radius without 2 approvals." Enterprise feature.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 TARGET USERS -->
+<div class="panel" id="icp">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">Target users</h1>
+  <p style="margin-bottom:2rem;">Two primary ICPs. One anti-ICP. Be ruthless about who you serve first.</p>
+
+  <h2>Primary ICP — who buys first</h2>
+  <div class="icp-card card-accent">
+    <div class="icp-title"><span style="font-size:20px;">🧑‍💻</span> The AI-Velocity Startup CTO</div>
+    <div class="icp-row"><span class="icp-key">Job title</span><span class="icp-val">CTO, Tech Lead, Senior Engineer at a 3–15 person startup</span></div>
+    <div class="icp-row"><span class="icp-key">Stack</span><span class="icp-val">Next.js 14+, TypeScript, Supabase or Postgres, Vercel, GitHub</span></div>
+    <div class="icp-row"><span class="icp-key">AI tools</span><span class="icp-val">Uses Cursor or Claude Code daily. Ships 10–20 PRs per week.</span></div>
+    <div class="icp-row"><span class="icp-key">Pain</span><span class="icp-val">"Cursor touched auth.ts and somehow broke the payment flow 3 files away. I had no idea they were connected."</span></div>
+    <div class="icp-row"><span class="icp-key">Why they pay</span><span class="icp-val">One prevented production incident pays for 6 months. This is risk management, not a dev tool.</span></div>
+    <div class="icp-row"><span class="icp-key">Where to find</span><span class="icp-val">Twitter/X #buildinpublic, r/nextjs, r/cursor, Hacker News, Indie Hackers</span></div>
+    <div class="icp-row"><span class="icp-key">Price sensitivity</span><span class="icp-val">Low. Will pay $49/mo without lengthy evaluation if the PR comment already proved value.</span></div>
+  </div>
+
+  <h2>Secondary ICP — team expansion vector</h2>
+  <div class="icp-card card-blue">
+    <div class="icp-title"><span style="font-size:20px;">👷</span> Engineering Lead at a 15–50 person company</div>
+    <div class="icp-row"><span class="icp-key">Job title</span><span class="icp-val">Engineering Manager, VP Engineering, Principal Engineer</span></div>
+    <div class="icp-row"><span class="icp-key">Company size</span><span class="icp-val">Series A–B startup or mid-size product company. 4–12 person eng team.</span></div>
+    <div class="icp-row"><span class="icp-key">Pain</span><span class="icp-val">"New hire merged a reviewed PR that broke something nobody tested because nobody knew the dependency existed. Onboarding takes 4 weeks."</span></div>
+    <div class="icp-row"><span class="icp-key">Why they pay</span><span class="icp-val">Onboarding cost is $5,000–$20,000 per engineer. The graph cuts ramp time from 4 weeks to 10 days. ROI is obvious.</span></div>
+    <div class="icp-row"><span class="icp-key">Buying motion</span><span class="icp-val">One developer installs the Action → team sees PR comments → manager asks who set it up → upgrade to Team plan.</span></div>
+    <div class="icp-row"><span class="icp-key">Where to find</span><span class="icp-val">LinkedIn, Engineering leadership Slack communities, DevOps newsletters</span></div>
+  </div>
+
+  <h2>Anti-ICP — do not target yet</h2>
+  <div class="card card-red">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+      <div><h3 style="color:var(--red);margin-bottom:4px;">Enterprise (Fortune 500)</h3><p style="font-size:12px;">6-month sales cycles, security reviews, SOC2 requirements. You don't have these yet.</p></div>
+      <div><h3 style="color:var(--red);margin-bottom:4px;">Solo freelancers</h3><p style="font-size:12px;">Won't pay $49/mo. One repo, no team. They're a marketing channel, not a revenue source.</p></div>
+      <div><h3 style="color:var(--red);margin-bottom:4px;">Python/Django shops</h3><p style="font-size:12px;">Your parser targets JS/TS only. Expanding to Python is a 3-month project. Don't over-promise.</p></div>
+      <div><h3 style="color:var(--red);margin-bottom:4px;">GitLab/Bitbucket users</h3><p style="font-size:12px;">Your GitHub Action only works on GitHub. Don't distract yourself with other platforms until v2.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 TECH STACK -->
+<div class="panel" id="stack">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">Tech stack</h1>
+  <p style="margin-bottom:2rem;">Every choice is justified. Zero AGPL risk. All MIT or Apache 2.0 licensed.</p>
+
+  <h2>Parser engine — you own this entirely</h2>
+  <div class="card">
+    <div class="stack-item"><div class="stack-tag">typescript-estree</div><div class="stack-meta"><h3>AST Parser</h3><p>MIT licensed. From the TypeScript-ESLint team. Parses every .ts/.tsx file into an AST you walk to extract imports, exports, JSX components, function calls. This is the foundation. Zero AGPL.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Bun runtime</div><div class="stack-meta"><h3>Parser runtime</h3><p>3x faster than Node.js for file I/O. Critical when scanning 500+ file repos. Runs in the GitHub Action container and on your backend as a sidecar process.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Custom BFS engine</div><div class="stack-meta"><h3>Blast radius algorithm</h3><p>Pure Python in your FastAPI backend. Reverse BFS on the edges table. No graph database (Neo4j, DGraph) needed — Postgres with proper indexes handles 5,000-node repos comfortably.</p></div></div>
+  </div>
+
+  <h2>Backend</h2>
+  <div class="card">
+    <div class="stack-item"><div class="stack-tag">FastAPI (Python)</div><div class="stack-meta"><h3>API server</h3><p>You already know it. Async-first. Handles repo ingestion, blast radius API, MCP server, Stripe webhooks. Deploy on Railway — $20/mo covers first 100 users.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Celery + Redis</div><div class="stack-meta"><h3>Background jobs</h3><p>Full repo scans run async via Celery. Redis caches blast radius results (TTL 10min). Prevents duplicate scans on rapid pushes. Flush cache per repo on new scan completion.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Resend</div><div class="stack-meta"><h3>Transactional email</h3><p>Weekly Architecture Digest, trial expiry warnings, scan complete notifications. $0 for first 3,000 emails/month. Better deliverability than Sendgrid for small senders.</p></div></div>
+  </div>
+
+  <h2>Database</h2>
+  <div class="card">
+    <div class="stack-item"><div class="stack-tag">Supabase (Postgres)</div><div class="stack-meta"><h3>Primary database + auth</h3><p>You know this. GitHub OAuth via Supabase Auth. Row-level security for multi-tenant isolation. Real-time subscriptions for live scan status in the dashboard. Free tier covers beta users.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">pgvector</div><div class="stack-meta"><h3>Semantic search</h3><p>Store Claude-generated embeddings per node. Phase 3 feature: "find all components related to payments" runs as a vector cosine similarity search. No separate vector DB needed.</p></div></div>
+  </div>
+
+  <h2>Frontend</h2>
+  <div class="card">
+    <div class="stack-item"><div class="stack-tag">Next.js 14 + TS</div><div class="stack-meta"><h3>Dashboard app</h3><p>App router, server components for fast graph data loading. Deploy on Vercel. You dogfood Sentinel on your own repo — your first real-world test case.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">React Flow (MIT)</div><div class="stack-meta"><h3>Graph canvas</h3><p>Handles pan/zoom/click on nodes. You write all the custom node renderers, edge styles, and layout algorithms on top. No AGPL risk — MIT license.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Tailwind + shadcn</div><div class="stack-meta"><h3>UI components</h3><p>Tailwind for layout. shadcn/ui for sidebar, tables, modals, settings pages. You customize the design token layer to match the Sentinel visual identity (see UI tab).</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Zustand</div><div class="stack-meta"><h3>State management</h3><p>Lightweight. Manages graph selection state, sidebar open/closed, active filters, and the scan progress indicator. No Redux complexity needed at this scale.</p></div></div>
+  </div>
+
+  <h2>Infrastructure + payments</h2>
+  <div class="card">
+    <div class="stack-item"><div class="stack-tag">Railway</div><div class="stack-meta"><h3>Backend hosting</h3><p>FastAPI + Celery workers. $20–50/mo for first 100 users. One-command deploy from GitHub. Upgrade to AWS/Fly.io when revenue justifies it.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Vercel</div><div class="stack-meta"><h3>Frontend hosting</h3><p>Free tier covers thousands of users. Automatic preview deploys per branch — essential for fast iteration without breaking production.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Stripe</div><div class="stack-meta"><h3>Billing</h3><p>Stripe Checkout (one weekend to integrate). Webhooks update Supabase on subscription events. Usage metering for MCP queries in Phase 4.</p></div></div>
+    <div class="stack-item"><div class="stack-tag">Claude API (Haiku)</div><div class="stack-meta"><h3>AI summaries</h3><p>Generates 2-sentence node summaries and embeddings at scan time. Haiku is cheap — roughly $0.001 per file. A 500-file repo costs $0.50 to summarize once.</p></div></div>
+  </div>
+</div>
+
+<!-- 05 PHASES -->
+<div class="panel" id="phases">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">Build phases</h1>
+  <p style="margin-bottom:2rem;">14 weeks total. Designed for 2–3 coding hours on weekdays + both days of 2 weekends/month.</p>
+
+  <div class="phase phase-1">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 01</span>
+      <span class="phase-title">The engine — parser + blast radius API</span>
+      <span class="phase-time">Weeks 1–3 · ~60 hrs</span>
+    </div>
+    <p style="font-size:13px;margin-bottom:0.75rem;">The foundation everything else is built on. No UI, no auth, no billing. Just make the parser work and the BFS algorithm correct.</p>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">AST parser script</strong> — Bun script using typescript-estree. Input: repo path. Output: JSON adjacency list {node_id, file_path, type, imports[], exports[]}. Target Next.js app router conventions first.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Node type classifier</strong> — Detect: page, layout, component, hook, api_route, middleware, util, supabase_client. Used later for criticality scoring.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Reverse BFS function</strong> — Pure Python function, no DB yet. Takes adjacency dict + starting node IDs. Returns all reachable nodes with hop distance. Unit test this heavily.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">FastAPI skeleton</strong> — POST /repos/scan and GET /blast-radius. No auth. Test locally with curl. Store graph in Supabase (manual setup).</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Risk scorer</strong> — Given affected nodes, compute risk score 0–100 and risk level. Middleware in blast radius = instant HIGH. Tune thresholds on your own codebase.</p></div></div>
+    <p style="font-size:12px;color:var(--green);margin-top:0.75rem;">✓ Milestone: Parser runs on your own repo and produces a correct graph. BFS returns the right affected files for a known change.</p>
+  </div>
+
+  <div class="phase phase-2">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 02</span>
+      <span class="phase-title">GitHub Action + auth + first users</span>
+      <span class="phase-time">Weeks 4–6 · ~40 hrs</span>
+    </div>
+    <p style="font-size:13px;margin-bottom:0.75rem;">Ship something people can see. Get 20 beta users before touching the dashboard. The Action is your proof of concept.</p>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">GitHub Action YAML</strong> — On PR open/update: checkout, run parser on diff, call blast-radius API, post formatted PR comment. Publish to Marketplace as free.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">GitHub OAuth + Supabase Auth</strong> — Login with GitHub. Connect repo via GitHub App installation. Trigger first full scan as Celery job.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Minimal dashboard v1</strong> — Repo list page + scan status + basic React Flow graph. No polish. Just working. Use shadcn defaults.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Beta launch post</strong> — 60-second Loom of PR comment appearing. Post on r/nextjs, r/cursor, X/Twitter. Collect 20 email signups. Give free access. Talk to every single one.</p></div></div>
+    <p style="font-size:12px;color:var(--green);margin-top:0.75rem;">✓ Milestone: 20 beta signups. 5 repos actively receiving PR comments. 1 user saying "this saved me from a bad deploy."</p>
+  </div>
+
+  <div class="phase phase-3">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 03</span>
+      <span class="phase-title">Dashboard polish + payments</span>
+      <span class="phase-time">Weeks 7–10 · ~50 hrs</span>
+    </div>
+    <p style="font-size:13px;margin-bottom:0.75rem;">Turn the working prototype into a product people pay for. Polish, AI summaries, Stripe.</p>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Graph heatmap + node sidebar</strong> — Color nodes by risk. Click to open sidebar with AI summary, dependents list, last 5 commits, linked PR analyses.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Claude Haiku node summaries</strong> — On scan complete, call Claude API for each file: "Summarize what this component does in 2 sentences." Store in graph_nodes. Display in sidebar.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">PR history timeline</strong> — Dashboard page showing all PRs chronologically with risk scores. Filter by HIGH risk. Shows value over time — users see patterns in their risky code.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Stripe billing</strong> — Pricing page, Stripe Checkout, plan gating, webhook sync to Supabase. 14-day trial, no card required.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Weekly digest email</strong> — Cron job every Monday. Top 3 riskiest PRs, most-changed nodes, architecture health score. Built with Resend.</p></div></div>
+    <p style="font-size:12px;color:var(--green);margin-top:0.75rem;">✓ Milestone: 10 paying customers. $290 MRR. Less than 5% monthly churn.</p>
+  </div>
+
+  <div class="phase phase-4">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 04</span>
+      <span class="phase-title">MCP server — the moat</span>
+      <span class="phase-time">Weeks 11–14 · ~30 hrs</span>
+    </div>
+    <p style="font-size:13px;margin-bottom:0.75rem;">The differentiator. No other blast radius tool does this. This is what makes Sentinel defensible.</p>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">MCP protocol handlers in FastAPI</strong> — Implement get_blast_radius(file_path), get_dependents(component), get_architecture_summary(repo_id), find_component(description). Auth via API key shown in dashboard.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">API key management in dashboard</strong> — Settings page: generate, rotate, revoke MCP API keys. Show usage stats (queries/day, most called tool). Metered billing hooks.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Cursor integration guide + blog post</strong> — "How to give Cursor a map of your entire codebase." Step-by-step with the .cursor/mcp.json config snippet. Submit to MCP directory.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Hacker News Show HN post</strong> — Time for 8am EST Tuesday. "Show HN: I built a tool that gives Cursor a real architecture map of your codebase before it writes code." This is the growth moment.</p></div></div>
+    <div class="task"><div class="task-dot"></div><div class="task"><p><strong style="color:var(--text)">Slack bot (Team/Studio plans)</strong> — Slack webhook on HIGH-risk PRs. Post to configured channel with blast radius summary. Makes Sentinel part of daily workflow.</p></div></div>
+    <p style="font-size:12px;color:var(--green);margin-top:0.75rem;">✓ Milestone: 50 paying customers. $2,000 MRR. 500 MCP queries/day. HN front page.</p>
+  </div>
+</div>
+
+<!-- 06 DATABASE -->
+<div class="panel" id="db">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">Database schema</h1>
+  <p style="margin-bottom:2rem;">7 core tables. Supabase (Postgres) with row-level security on every table.</p>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">users</span><span class="badge badge-green" style="margin-left:auto;">Phase 2</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc">Supabase auth user ID</span></div>
+    <div class="db-field"><span class="db-field-name">github_id</span><span class="db-field-type">bigint</span><span class="db-field-desc">GitHub user ID for OAuth linkage</span></div>
+    <div class="db-field"><span class="db-field-name">email</span><span class="db-field-type">text</span><span class="db-field-desc">For digest emails and billing</span></div>
+    <div class="db-field"><span class="db-field-name">plan</span><span class="db-field-type">enum</span><span class="db-field-desc">free | solo | team | studio — updated by Stripe webhook</span></div>
+    <div class="db-field"><span class="db-field-name">stripe_customer_id</span><span class="db-field-type">text</span><span class="db-field-desc">Stripe customer reference for billing management</span></div>
+    <div class="db-field"><span class="db-field-name">mcp_api_key</span><span class="db-field-type">text</span><span class="db-field-desc">Hashed API key for MCP server authentication</span></div>
+    <div class="db-field"><span class="db-field-name">trial_ends_at</span><span class="db-field-type">timestamptz</span><span class="db-field-desc">14-day trial expiry — NULL after converting to paid</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">repos</span><span class="badge badge-green" style="margin-left:auto;">Phase 2</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">user_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">Owner — RLS policy: users only see their own repos</span></div>
+    <div class="db-field"><span class="db-field-name">github_repo_id</span><span class="db-field-type">bigint</span><span class="db-field-desc">GitHub's internal repo ID — stable even on renames</span></div>
+    <div class="db-field"><span class="db-field-name">full_name</span><span class="db-field-type">text</span><span class="db-field-desc">owner/repo format e.g. manoj/my-app</span></div>
+    <div class="db-field"><span class="db-field-name">scan_status</span><span class="db-field-type">enum</span><span class="db-field-desc">pending | running | done | failed</span></div>
+    <div class="db-field"><span class="db-field-name">node_count</span><span class="db-field-type">int</span><span class="db-field-desc">Cached after each scan — shown on dashboard</span></div>
+    <div class="db-field"><span class="db-field-name">last_scanned_at</span><span class="db-field-type">timestamptz</span><span class="db-field-desc">Used to detect stale graphs</span></div>
+    <div class="db-field"><span class="db-field-name">default_branch</span><span class="db-field-type">text</span><span class="db-field-desc">main or master — for full scan checkout</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">graph_nodes</span><span class="badge badge-blue" style="margin-left:auto;">Phase 1</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">repo_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">Indexed — all graph queries filter by repo</span></div>
+    <div class="db-field"><span class="db-field-name">file_path</span><span class="db-field-type">text</span><span class="db-field-desc">Relative path e.g. app/auth/login/page.tsx — indexed</span></div>
+    <div class="db-field"><span class="db-field-name">node_type</span><span class="db-field-type">enum</span><span class="db-field-desc">page | layout | component | hook | api_route | middleware | util | supabase_client</span></div>
+    <div class="db-field"><span class="db-field-name">display_name</span><span class="db-field-type">text</span><span class="db-field-desc">Human-readable e.g. LoginPage, useAuth</span></div>
+    <div class="db-field"><span class="db-field-name">ai_summary</span><span class="db-field-type">text</span><span class="db-field-desc">2-sentence Claude Haiku summary generated at scan time</span></div>
+    <div class="db-field"><span class="db-field-name">importance_score</span><span class="db-field-type">int 0-100</span><span class="db-field-desc">Computed from in-degree (how many nodes depend on this). Used for heatmap and risk scoring.</span></div>
+    <div class="db-field"><span class="db-field-name">embedding</span><span class="db-field-type">vector(1536)</span><span class="db-field-desc">pgvector embedding of ai_summary — for semantic node search in Phase 3</span></div>
+    <div class="db-field"><span class="db-field-name">last_modified_at</span><span class="db-field-type">timestamptz</span><span class="db-field-desc">From git log — shown in node sidebar</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">graph_edges</span><span class="badge badge-blue" style="margin-left:auto;">Phase 1</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">repo_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">Indexed with source_node_id and target_node_id separately</span></div>
+    <div class="db-field"><span class="db-field-name">source_node_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">The file doing the importing</span></div>
+    <div class="db-field"><span class="db-field-name">target_node_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">The file being imported — BFS traverses on this</span></div>
+    <div class="db-field"><span class="db-field-name">edge_type</span><span class="db-field-type">enum</span><span class="db-field-desc">import | call | prop_pass | route_link</span></div>
+    <div class="db-field"><span class="db-field-name">weight</span><span class="db-field-type">int</span><span class="db-field-desc">How many times source references target — stronger edges rank higher in critical path</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">pr_analyses</span><span class="badge badge-green" style="margin-left:auto;">Phase 2</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc">Returned in blast radius API response — used for dashboard history</span></div>
+    <div class="db-field"><span class="db-field-name">repo_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">pr_number</span><span class="db-field-type">int</span><span class="db-field-desc">GitHub PR number — unique index with repo_id</span></div>
+    <div class="db-field"><span class="db-field-name">pr_title</span><span class="db-field-type">text</span><span class="db-field-desc">Shown in PR history timeline</span></div>
+    <div class="db-field"><span class="db-field-name">changed_files</span><span class="db-field-type">text[]</span><span class="db-field-desc">Array of file paths from the PR diff</span></div>
+    <div class="db-field"><span class="db-field-name">affected_node_ids</span><span class="db-field-type">uuid[]</span><span class="db-field-desc">Snapshot of blast radius result — for historical accuracy</span></div>
+    <div class="db-field"><span class="db-field-name">blast_radius_count</span><span class="db-field-type">int</span><span class="db-field-desc">Total affected nodes</span></div>
+    <div class="db-field"><span class="db-field-name">risk_level</span><span class="db-field-type">enum</span><span class="db-field-desc">low | medium | high</span></div>
+    <div class="db-field"><span class="db-field-name">risk_score</span><span class="db-field-type">int 0-100</span><span class="db-field-desc">Numeric score for charting and comparison</span></div>
+    <div class="db-field"><span class="db-field-name">critical_paths</span><span class="db-field-type">text[]</span><span class="db-field-desc">Readable path strings e.g. "auth.ts → useAuth → middleware.ts"</span></div>
+    <div class="db-field"><span class="db-field-name">github_comment_id</span><span class="db-field-type">bigint</span><span class="db-field-desc">For updating the comment on re-runs instead of posting a duplicate</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">mcp_queries</span><span class="badge badge-amber" style="margin-left:auto;">Phase 4</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">user_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc">For usage billing and per-user analytics</span></div>
+    <div class="db-field"><span class="db-field-name">repo_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">tool_name</span><span class="db-field-type">text</span><span class="db-field-desc">get_blast_radius | get_dependents | find_component | get_summary</span></div>
+    <div class="db-field"><span class="db-field-name">input_params</span><span class="db-field-type">jsonb</span><span class="db-field-desc">What the AI agent asked for — valuable product data</span></div>
+    <div class="db-field"><span class="db-field-name">response_ms</span><span class="db-field-type">int</span><span class="db-field-desc">Latency tracking — p95 target is under 300ms</span></div>
+    <div class="db-field"><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span><span class="db-field-desc">For usage aggregation and monthly billing rollup</span></div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header"><span class="db-table-name">scan_jobs</span><span class="badge badge-blue" style="margin-left:auto;">Phase 2</span></div>
+    <div class="db-field"><span class="db-field-name">id</span><span class="db-field-type">uuid PK</span><span class="db-field-desc">Also used as Celery task ID</span></div>
+    <div class="db-field"><span class="db-field-name">repo_id</span><span class="db-field-type">uuid FK</span><span class="db-field-desc"></span></div>
+    <div class="db-field"><span class="db-field-name">triggered_by</span><span class="db-field-type">enum</span><span class="db-field-desc">manual | webhook_push | pr_event | scheduled</span></div>
+    <div class="db-field"><span class="db-field-name">status</span><span class="db-field-type">enum</span><span class="db-field-desc">pending | running | done | failed</span></div>
+    <div class="db-field"><span class="db-field-name">error_message</span><span class="db-field-type">text</span><span class="db-field-desc">NULL on success — shown in dashboard if scan fails</span></div>
+    <div class="db-field"><span class="db-field-name">duration_ms</span><span class="db-field-type">int</span><span class="db-field-desc">Scan time tracking — target under 30s for 500-node repos</span></div>
+  </div>
+
+  <h2>Critical indexes</h2>
+  <div class="card">
+    <div style="font-family:var(--font-mono);font-size:11px;line-height:2;color:var(--text2);">
+      graph_edges(repo_id, source_node_id) — forward traversal<br>
+      graph_edges(repo_id, target_node_id) — reverse BFS (most important)<br>
+      graph_nodes(repo_id, file_path) — map PR diff paths to node IDs<br>
+      graph_nodes(repo_id, node_type) — filter by type in heatmap<br>
+      pr_analyses(repo_id, pr_number) — deduplication on re-runs<br>
+      pr_analyses(repo_id, risk_level) — filter timeline by HIGH<br>
+      graph_nodes USING ivfflat (embedding vector_cosine_ops) — semantic search<br>
+      mcp_queries(user_id, created_at) — usage billing rollup
+    </div>
+  </div>
+</div>
+
+<!-- 07 UI & DESIGN -->
+<div class="panel" id="ui">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">UI & design system</h1>
+  <p style="margin-bottom:2rem;">Dark, technical, precise. Feels like a tool built by engineers for engineers — not a startup marketing site.</p>
+
+  <h2>Design direction</h2>
+  <div class="card card-accent">
+    <p><strong style="color:var(--text)">Aesthetic:</strong> Dark industrial utility. Think terminal meets modern SaaS. High contrast, monospace accents, generous whitespace, electric yellow-green as the single accent color. Not purple gradients. Not generic. Looks like you built it yourself with taste.</p>
+    <p style="margin:0"><strong style="color:var(--text)">Reference feel:</strong> Linear.app's precision + Vercel Dashboard's dark theme + a hint of the raw power of a code editor. Functional beauty — every pixel earns its place.</p>
+  </div>
+
+  <h2>Typography</h2>
+  <div class="font-preview">
+    <div class="font-preview-large" style="font-family:'Syne',sans-serif;">Syne — Headings & UI labels</div>
+    <div class="font-preview-small">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</div>
+    <div class="font-name">font-family: 'Syne' — weights 400/600/700/800 — use for all headings, nav items, phase titles, feature names</div>
+  </div>
+  <div class="font-preview">
+    <div class="font-preview-large" style="font-family:'DM Sans',sans-serif;font-weight:300;">DM Sans — Body & descriptions</div>
+    <div class="font-preview-small" style="font-family:'DM Sans',sans-serif;">The quick brown fox jumps over the lazy dog. 300/400/500 weights.</div>
+    <div class="font-name">font-family: 'DM Sans' — weights 300/400/500 — use for all body text, card descriptions, sidebar content</div>
+  </div>
+  <div class="font-preview">
+    <div class="font-preview-large" style="font-family:'JetBrains Mono',monospace;font-size:20px;">JetBrains Mono — Code & data</div>
+    <div class="font-preview-small" style="font-family:'JetBrains Mono',monospace;">file_path · node_id · risk_score · 0–100</div>
+    <div class="font-name">font-family: 'JetBrains Mono' — weights 400/500 — use for file paths, API endpoints, labels, risk scores, badges, all data values</div>
+  </div>
+
+  <h2>Color system</h2>
+  <div class="swatch-row">
+    <div><div class="swatch" style="background:#0a0a0b;border:1px solid #333;"></div><span>#0a0a0b</span></div>
+    <div><div class="swatch" style="background:#111114;"></div><span>#111114</span></div>
+    <div><div class="swatch" style="background:#18181d;"></div><span>#18181d</span></div>
+    <div><div class="swatch" style="background:#e8ff47;"></div><span>#e8ff47</span></div>
+    <div><div class="swatch" style="background:#47b8ff;"></div><span>#47b8ff</span></div>
+    <div><div class="swatch" style="background:#2ed573;"></div><span>#2ed573</span></div>
+    <div><div class="swatch" style="background:#ff4757;"></div><span>#ff4757</span></div>
+    <div><div class="swatch" style="background:#ffa502;"></div><span>#ffa502</span></div>
+    <div><div class="swatch" style="background:#a78bfa;"></div><span>#a78bfa</span></div>
+  </div>
+
+  <h2>Dashboard screens</h2>
+
+  <div class="ui-screen">
+    <div class="ui-titlebar">
+      <div class="ui-dot" style="background:#ff4757;"></div>
+      <div class="ui-dot" style="background:#ffa502;"></div>
+      <div class="ui-dot" style="background:#2ed573;"></div>
+      <span class="ui-title">Sentinel.dev — Repo graph view</span>
+    </div>
+    <div class="ui-content">
+      <div style="display:flex;gap:10px;height:160px;">
+        <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3);">React Flow graph canvas<br><span style="font-family:var(--font-mono);font-size:10px;">nodes colored by type + risk</span></div>
+        <div style="width:200px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:6px;">hooks/useAuth.ts</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">AUTH HOOK · importance 87</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;">Manages auth state and session via Supabase. Used by middleware and all protected routes.</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);">12 dependents · 3 imports</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui-screen">
+    <div class="ui-titlebar">
+      <div class="ui-dot" style="background:#ff4757;"></div>
+      <div class="ui-dot" style="background:#ffa502;"></div>
+      <div class="ui-dot" style="background:#2ed573;"></div>
+      <span class="ui-title">GitHub PR #142 — blast radius comment</span>
+    </div>
+    <div class="ui-content">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);"></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--red);">HIGH RISK</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3);">blast radius · 9 files · score 78/100</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Changed: <span style="color:var(--accent);font-family:var(--font-mono);">lib/supabase/client.ts</span></div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Critical path: client.ts → useAuth.ts → middleware.ts</div>
+        <div style="font-size:11px;color:var(--text3);">⚠ middleware.ts in blast radius — all routes affected</div>
+        <div style="margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--accent3);">→ View full analysis on Sentinel</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Graph node color system</h2>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;"><div style="width:14px;height:14px;border-radius:3px;background:#ff4757;flex-shrink:0;"></div><span style="color:var(--text2)"><strong style="color:var(--text)">Red</strong> — middleware, root layout, global auth hooks (critical nodes)</span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;"><div style="width:14px;height:14px;border-radius:3px;background:#ffa502;flex-shrink:0;"></div><span style="color:var(--text2)"><strong style="color:var(--text)">Amber</strong> — API routes, auth hooks, Supabase client, data hooks</span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;"><div style="width:14px;height:14px;border-radius:3px;background:#47b8ff;flex-shrink:0;"></div><span style="color:var(--text2)"><strong style="color:var(--text)">Blue</strong> — page components, feature components, standard utilities</span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;"><div style="width:14px;height:14px;border-radius:3px;background:#333;flex-shrink:0;"></div><span style="color:var(--text2)"><strong style="color:var(--text)">Gray</strong> — leaf nodes: pure UI, style files, type-only files</span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;"><div style="width:14px;height:14px;border-radius:3px;background:#e8ff47;flex-shrink:0;"></div><span style="color:var(--text2)"><strong style="color:var(--text)">Yellow pulse</strong> — node is in the current PR's blast radius</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 08 METRICS -->
+<div class="panel" id="metrics">
+  <h1 style="font-size:24px;margin-bottom:0.25rem;">Success metrics</h1>
+  <p style="margin-bottom:2rem;">Track these. If they're not moving, stop building and start talking to users.</p>
+
+  <h2>Phase 1–2 targets (weeks 1–6)</h2>
+  <div class="metric-grid">
+    <div class="metric metric-blue"><div class="metric-val">20</div><div class="metric-label">Beta signups from launch post</div></div>
+    <div class="metric metric-green"><div class="metric-val">5</div><div class="metric-label">Repos with Action installed</div></div>
+    <div class="metric metric-yellow"><div class="metric-val">1</div><div class="metric-label">Testimonial: "this saved a deploy"</div></div>
+  </div>
+
+  <h2>Phase 3 targets (months 2–3)</h2>
+  <div class="metric-grid">
+    <div class="metric metric-green"><div class="metric-val">10</div><div class="metric-label">Paying customers</div></div>
+    <div class="metric metric-yellow"><div class="metric-val">$290</div><div class="metric-label">Monthly recurring revenue</div></div>
+    <div class="metric metric-blue"><div class="metric-val">&lt;5%</div><div class="metric-label">Monthly churn rate</div></div>
+  </div>
+
+  <h2>Phase 4 targets (months 4–6)</h2>
+  <div class="metric-grid">
+    <div class="metric metric-green"><div class="metric-val">50</div><div class="metric-label">Paying customers</div></div>
+    <div class="metric metric-yellow"><div class="metric-val">$2K</div><div class="metric-label">MRR target</div></div>
+    <div class="metric metric-amber"><div class="metric-val">500</div><div class="metric-label">MCP queries per day</div></div>
+  </div>
+
+  <h2>6-month target</h2>
+  <div class="metric-grid">
+    <div class="metric metric-yellow"><div class="metric-val">100</div><div class="metric-label">Paying customers</div></div>
+    <div class="metric metric-green"><div class="metric-val">$4.5K</div><div class="metric-label">MRR (ramen profitable)</div></div>
+    <div class="metric metric-blue"><div class="metric-val">1,000</div><div class="metric-label">GitHub Actions installed</div></div>
+  </div>
+
+  <h2>Revenue model at 100 customers</h2>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">40 × Solo ($19/mo)</span><span style="font-family:var(--font-mono);color:var(--text)">$760</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">45 × Team ($49/mo)</span><span style="font-family:var(--font-mono);color:var(--text)">$2,205</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">15 × Studio ($149/mo)</span><span style="font-family:var(--font-mono);color:var(--text)">$2,235</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text2)">MCP usage overage (est.)</span><span style="font-family:var(--font-mono);color:var(--text)">$400</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;font-weight:500;">
+        <span style="color:var(--text)">Total MRR</span><span style="font-family:var(--font-mono);color:var(--accent);">$5,600</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Kill switch — when to stop and pivot</h2>
+  <div class="card card-red">
+    <p>If 3 months after launching paid plans you have fewer than 10 paying customers: stop adding features. Run 20 user interviews. Ask "what stopped you from paying?" Fix the one blocking reason — or change the pricing, not the product. More features is almost never the answer at zero-to-one stage.</p>
+  </div>
+
+  <h2>Infra cost at 100 paying users</h2>
+  <div class="card">
+    <div style="font-size:13px;color:var(--text2);line-height:2;">
+      Railway (FastAPI + Celery): ~$40/mo<br>
+      Supabase Pro: $25/mo<br>
+      Vercel Pro: $20/mo<br>
+      Redis (Upstash): $10/mo<br>
+      Resend email: $0 (under 3,000/mo)<br>
+      Claude API (Haiku, summaries): ~$15/mo<br>
+      <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;color:var(--text);font-weight:500;">Total infra: ~$110/mo at 100 users<br>Gross margin at $5,600 MRR: <span style="color:var(--accent);font-family:var(--font-mono);">98%</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

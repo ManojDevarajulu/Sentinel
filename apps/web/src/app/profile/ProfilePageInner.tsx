@@ -89,27 +89,45 @@ export default function ProfilePageInner() {
   const [weeklyDigest, setWeeklyDigest] = useState(false)
   const [prAlerts, setPrAlerts] = useState(true)
 
-  const loadUser = useCallback(async () => {
+  const loadProfileData = useCallback(async () => {
     // Use getSession() first — it reads from localStorage instantly (no network round-trip).
     // getUser() makes a network call and returns null during hydration, causing a false redirect.
     const { data: sessionData } = await supabase.auth.getSession()
     if (!sessionData.session) {
-      router.push('/login')
-      return
+      return null
     }
     const currentUser = sessionData.session.user
-    setUser(currentUser)
-    setDisplayName(currentUser.user_metadata?.full_name || '')
-
     const { count } = await supabase
       .from('repos')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', currentUser.id)
-    setRepoCount(count || 0)
-    setLoading(false)
-  }, [router])
+    return {
+      user: currentUser,
+      repoCount: count || 0,
+    }
+  }, [])
 
-  useEffect(() => { loadUser() }, [loadUser])
+  useEffect(() => {
+    let active = true
+
+    loadProfileData().then((profile) => {
+      if (!active) return
+
+      if (!profile) {
+        router.push('/login')
+        return
+      }
+
+      setUser(profile.user)
+      setDisplayName(profile.user.user_metadata?.full_name || '')
+      setRepoCount(profile.repoCount)
+      setLoading(false)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [loadProfileData, router])
 
   // Also listen for auth state changes (e.g. token refresh, sign-out in another tab)
   useEffect(() => {
@@ -132,7 +150,12 @@ export default function ProfilePageInner() {
       setSaveMsg({ type: 'error', text: error.message })
     } else {
       setSaveMsg({ type: 'success', text: '✓ Display name updated.' })
-      await loadUser()
+      const profile = await loadProfileData()
+      if (profile) {
+        setUser(profile.user)
+        setDisplayName(profile.user.user_metadata?.full_name || '')
+        setRepoCount(profile.repoCount)
+      }
     }
   }
 

@@ -6,9 +6,9 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies for all workspaces
-RUN npm install -g npm@latest
-RUN rm -f package-lock.json
-RUN npm install
+# (Remove stale lockfile — workspace node_modules are excluded via .dockerignore
+#  which causes npm to fail on stub entries with missing version fields)
+RUN rm -f package-lock.json && npm install
 
 # Build the Next.js frontend
 RUN npm run build --workspace=frontend

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 
@@ -8,6 +8,10 @@ from services.path_tracer import trace_critical_paths
 from db import db_client
 
 router = APIRouter(prefix='/api/v1')
+
+
+def _normalize_path(file_path: str) -> str:
+    return file_path.replace("\\", "/").lstrip("./")
 
 
 class BlastRadiusRequest(BaseModel):
@@ -40,19 +44,21 @@ class BlastRadiusResponse(BaseModel):
 
 @router.post("/blast-radius", response_model=BlastRadiusResponse)
 async def get_blast_radius(request: BlastRadiusRequest):
-    # Step 1: Resolve changed file paths to graph_node IDs
+    normalized_changed_files = [_normalize_path(path) for path in request.changed_files]
+
     try:
         nodes_result = (
             db_client
             .table('graph_nodes')
-            .select('id, file_path, node_type, importance_score, ai_summary')
+            .select('id, file_path, node_type, importance_score, ai_summary, display_name')
             .eq('repo_id', request.repo_id)
-            .in_('file_path', request.changed_files)
             .execute()
         )
-        starting_nodes = nodes_result.data or []
-    except Exception as e:
-        # If repo_id is invalid UUID or graph doesn't exist yet, return empty
+        all_nodes = nodes_result.data or []
+    except Exception:
+        all_nodes = []
+
+    if not all_nodes:
         return BlastRadiusResponse(
             blast_radius_count=0,
             risk_level="UNKNOWN",
@@ -63,8 +69,10 @@ async def get_blast_radius(request: BlastRadiusRequest):
             analysis_id=f"no-graph-{request.repo_id[:8]}"
         )
 
+    node_by_path = {_normalize_path(node['file_path']): node for node in all_nodes}
+    starting_nodes = [node_by_path[path] for path in normalized_changed_files if path in node_by_path]
+
     if not starting_nodes:
-        # No nodes found for the changed files — repo may not be scanned yet
         return BlastRadiusResponse(
             blast_radius_count=0,
             risk_level="UNKNOWN",
@@ -76,55 +84,71 @@ async def get_blast_radius(request: BlastRadiusRequest):
         )
 
     starting_node_ids = [n['id'] for n in starting_nodes]
-    node_id_to_path = {n['id']: n['file_path'] for n in starting_nodes}
 
-    # Step 2: BFS to find all upstream dependents
     hop_map = await reverse_bfs(request.repo_id, starting_node_ids, request.depth_limit)
-
-    # Step 3: Fetch full data for all affected nodes
     all_affected_ids = list(hop_map.keys())
-    if all_affected_ids:
-        try:
-            affected_result = (
-                db_client
-                .table('graph_nodes')
-                .select('id, file_path, node_type, importance_score, ai_summary')
-                .in_('id', all_affected_ids)
-                .execute()
-            )
-            affected_nodes_data = affected_result.data or []
-        except Exception:
-            affected_nodes_data = []
-    else:
-        affected_nodes_data = []
 
-    # Step 4: Calculate risk
+    affected_nodes_data = [node for node in all_nodes if node['id'] in all_affected_ids]
+    affected_nodes_data.sort(
+        key=lambda node: (
+            hop_map.get(node['id'], 0),
+            -(node.get('importance_score', 0) or 0),
+            node.get('file_path', ''),
+        )
+    )
+
+    try:
+        edges_result = (
+            db_client
+            .table('graph_edges')
+            .select('source_node_id, target_node_id, edge_type, weight')
+            .eq('repo_id', request.repo_id)
+            .execute()
+        )
+        all_edges = edges_result.data or []
+    except Exception:
+        all_edges = []
+
+    node_id_to_path = {node['id']: _normalize_path(node['file_path']) for node in all_nodes}
+    repo_node_count = len(all_nodes)
     risk_level, risk_score = compute_risk(
-        affected_nodes_data, len(starting_node_ids), 100
+        affected_nodes_data,
+        len(starting_node_ids),
+        repo_node_count,
     )
 
-    # Step 5: Trace critical paths
-    paths = trace_critical_paths(
-        hop_map, [], request.changed_files, node_id_to_path
-    )
-
-    # Step 6: Build response
     nodes_response = [
         AffectedNode(
-            node_id=n['id'],
-            file_path=n['file_path'],
-            node_type=n.get('node_type', 'util'),
-            criticality='high' if n.get('node_type') == 'middleware' else 'medium' if n.get('importance_score', 0) > 60 else 'low',
-            hop_distance=hop_map.get(n['id'], 0),
-            ai_summary=n.get('ai_summary') or '',
-            importance_score=n.get('importance_score', 0)
+            node_id=node['id'],
+            file_path=_normalize_path(node['file_path']),
+            node_type=node.get('node_type', 'util'),
+            criticality=(
+                'high'
+                if node.get('node_type') in {'middleware', 'layout'}
+                else 'medium'
+                if (node.get('importance_score', 0) or 0) > 60
+                else 'low'
+            ),
+            hop_distance=hop_map.get(node['id'], 0),
+            ai_summary=node.get('ai_summary') or '',
+            importance_score=node.get('importance_score', 0) or 0
         )
-        for n in affected_nodes_data
+        for node in affected_nodes_data
     ]
+
+    paths = trace_critical_paths(
+        affected_nodes=[
+            node.model_dump() if hasattr(node, "model_dump") else node.dict()
+            for node in nodes_response
+        ],
+        all_edges=all_edges,
+        starting_node_ids=starting_node_ids,
+        node_id_to_path=node_id_to_path,
+    )
 
     return BlastRadiusResponse(
         blast_radius_count=len(affected_nodes_data),
-        risk_level=risk_level,
+        risk_level=risk_level.upper(),
         risk_score=risk_score,
         affected_nodes=nodes_response,
         critical_paths=paths,

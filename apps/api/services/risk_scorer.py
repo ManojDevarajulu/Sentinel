@@ -1,4 +1,6 @@
 def compute_risk(affected_nodes: list[dict], starting_count: int, repo_node_count: int) -> tuple[str, int]:
+    repo_node_count = max(repo_node_count, len(affected_nodes), starting_count, 1)
+
     # Component A: Volume of codebase affected
     volume_ratio = len(affected_nodes) / max(1, repo_node_count * 0.15)
     count_score = min(volume_ratio, 1.0) * 40

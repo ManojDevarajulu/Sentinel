@@ -1,35 +1,58 @@
-import { glob } from 'glob';
 import fs from 'fs';
 import path from 'path';
 
+const IGNORED_DIRECTORIES = new Set([
+  'node_modules',
+  '.next',
+  'dist',
+  'coverage',
+  '__tests__',
+]);
+
+const SUPPORTED_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
+
 export async function walkRepo(repoPath: string): Promise<string[]> {
-  const ignorePatterns = [
-    '**/node_modules/**',
-    '**/.next/**',
-    '**/dist/**',
-    '**/coverage/**',
-    '**/__tests__/**',
-    '**/*.test.ts',
-    '**/*.spec.ts',
-    '**/*.test.tsx',
-    '**/*.spec.tsx'
-  ];
+  const root = path.resolve(repoPath);
+  const files: string[] = [];
 
-  const files = await glob('**/*.{ts,tsx,js,jsx}', {
-    cwd: repoPath,
-    ignore: ignorePatterns,
-    absolute: true
-  });
+  walkDirectory(root, files);
 
-  // Filter out tiny files (< 10 bytes) or empty files
-  const validFiles = files.filter(file => {
-    try {
-      const stats = fs.statSync(file);
-      return stats.size >= 10;
-    } catch {
-      return false;
+  return files
+    .filter((file) => {
+      const normalized = file.replace(/\\/g, '/');
+      if (normalized.endsWith('.d.ts')) return false;
+      if (normalized.endsWith('.test.ts') || normalized.endsWith('.spec.ts')) return false;
+      if (normalized.endsWith('.test.tsx') || normalized.endsWith('.spec.tsx')) return false;
+
+      try {
+        return fs.statSync(file).size >= 10;
+      } catch {
+        return false;
+      }
+    })
+    .sort();
+}
+
+function walkDirectory(directory: string, files: string[]) {
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(directory, { withFileTypes: true });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!IGNORED_DIRECTORIES.has(entry.name)) {
+        walkDirectory(fullPath, files);
+      }
+      continue;
     }
-  });
 
-  return validFiles.sort();
+    if (entry.isFile() && SUPPORTED_EXTENSIONS.has(path.extname(entry.name))) {
+      files.push(path.resolve(fullPath));
+    }
+  }
 }

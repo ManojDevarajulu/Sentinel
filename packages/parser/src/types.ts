@@ -24,6 +24,8 @@ export interface GraphNode {
   displayName: string;
   aiSummary?: string;
   importanceScore: number;
+  imports?: string[];
+  exports?: string[];
 }
 
 export interface GraphEdge {

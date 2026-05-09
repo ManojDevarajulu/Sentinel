@@ -1,10 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { getRepos, type Repo } from '@/lib/api'
+
+type ScanApiResponse = {
+  job_id?: string
+  detail?: string
+}
 
 export default function DashboardPage() {
-  const [repos, setRepos] = useState<any[]>([])
+  const router = useRouter()
+  const [repos, setRepos] = useState<Repo[]>([])
   const [loaded, setLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -12,108 +21,93 @@ export default function DashboardPage() {
   const [scanName, setScanName] = useState('')
   const [scanning, setScanning] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
-  const [userId, setUserId] = useState<string | null>(null)
 
   const loadRepos = async () => {
     setLoading(true)
     setError('')
-    const { data, error: err } = await supabase
-      .from('repos')
-      .select(`
-        *,
-        scan_jobs ( status, created_at ),
-        graph_nodes ( id )
-      `)
-      .order('updated_at', { ascending: false })
-
-    setLoading(false)
-    if (err) {
-      setError(`Could not load repos: ${err.message}. Make sure the Supabase 'repos' table has read access.`)
-      return
-    }
-
-    const mappedRepos = (data || []).map((r: any) => {
-      const latestJob = r.scan_jobs?.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())?.[0]
-      return {
-        ...r,
-        full_name: r.repo_name,
-        scan_status: latestJob?.status || 'pending',
-        node_count: r.graph_nodes?.length || 0,
-        last_scanned_at: r.updated_at
-      }
-    })
-
-    setRepos(mappedRepos)
+    const repoList = await getRepos()
+    setRepos(repoList)
     setLoaded(true)
+    setLoading(false)
   }
 
-  // Auto-load repos on mount once the session is confirmed
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setUserId(data.session.user.id)
-        loadRepos()
-      }
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    let active = true
 
-  const handleScan = async (e: React.FormEvent) => {
-    e.preventDefault()
+    async function loadInitialData() {
+      const { data } = await supabase.auth.getSession()
+
+      if (!active) return
+
+      if (data.session) {
+        await loadRepos()
+      } else {
+        router.replace('/login?redirectTo=/dashboard')
+      }
+    }
+
+    loadInitialData()
+
+    return () => {
+      active = false
+    }
+  }, [router])
+
+  const handleScan = async (event: React.FormEvent) => {
+    event.preventDefault()
     if (!scanPath || !scanName) return
+
     setScanning(true)
     setScanMsg('')
 
     const { data: sessionData } = await supabase.auth.getSession()
     const session = sessionData?.session
-    const user_id = session?.user?.id
+    const userId = session?.user?.id
 
-    if (!user_id) {
+    if (!userId) {
       setScanMsg('You must be logged in to scan a repo.')
       setScanning(false)
       return
     }
 
-    // 1. Insert repo row
     const { data: repo, error: repoErr } = await supabase
       .from('repos')
-      .insert([{ 
-        user_id,
+      .insert([{
+        user_id: userId,
         github_repo_id: `local_${Date.now()}`,
-        repo_name: scanName, 
-        default_branch: 'main' 
+        repo_name: scanName,
+        default_branch: 'main'
       }])
-      .select()
+      .select('id')
       .single()
 
     if (repoErr || !repo) {
-      setScanMsg(`Failed to create repo: ${repoErr?.message}`)
+      setScanMsg(`Failed to create repo: ${repoErr?.message || 'Unknown error'}`)
       setScanning(false)
       return
     }
-
-    // 2. Trigger scan via backend API
-    const token = session?.access_token
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/repos/${repo.id}/scan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
+          ...(session.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
         },
         body: JSON.stringify({ repo_id: repo.id, repo_path: scanPath })
       })
-      const result = await res.json()
+      const result = await res.json() as ScanApiResponse
+
       if (res.ok) {
-        setScanMsg(`✓ Scan started! Job ID: ${result.job_id}. Refreshing repos...`)
+        setScanMsg(`Scan started. Job ID: ${result.job_id}. Refreshing repos...`)
         await loadRepos()
       } else {
         setScanMsg(`Scan error: ${result.detail || JSON.stringify(result)}`)
       }
-    } catch (e: any) {
-      setScanMsg(`Could not reach API: ${e.message}`)
+    } catch (err: unknown) {
+      setScanMsg(`Could not reach API: ${err instanceof Error ? err.message : String(err)}`)
     }
+
     setScanning(false)
   }
 
@@ -125,51 +119,55 @@ export default function DashboardPage() {
           <p className="text-[var(--color-text-sub)] text-sm mt-1">Manage and monitor connected TypeScript and Python repositories.</p>
         </div>
         <button onClick={loadRepos} disabled={loading} className="btn-primary flex items-center gap-2 text-xs disabled:opacity-60">
-          {loading ? 'Loading...' : loaded ? '↻ Refresh' : 'Load Repos'}
+          {loading ? 'Loading...' : loaded ? 'Refresh' : 'Load Repos'}
         </button>
       </div>
 
-      {/* Error state */}
       {error && (
         <div className="mb-6 p-4 bg-[rgba(255,71,87,0.1)] border border-[var(--color-red)] rounded-lg text-[var(--color-red)] text-sm">
-          <p className="font-bold mb-1">⚠ Error</p>
+          <p className="font-bold mb-1">Error</p>
           <p>{error}</p>
           <p className="mt-2 text-xs opacity-70">
-            → <a href="/login" className="underline">Sign in</a> to access your repositories, or check Supabase RLS policies.
+            <Link href="/login" className="underline">Sign in</Link> to access your repositories, or check Supabase RLS policies.
           </p>
         </div>
       )}
 
-      {/* Scan a local repo */}
       <div className="mb-8 p-6 border border-dashed border-[var(--color-border-sub)] rounded-xl bg-[var(--color-background-2)]">
         <p className="font-mono text-[10px] text-[var(--color-accent)] tracking-widest mb-3 uppercase">Scan a Local Repository</p>
         <p className="text-sm text-[var(--color-text-sub)] mb-4">
-          Enter the name and the absolute path to a local repo. The backend must have access to this path (it's mounted at <code className="text-[var(--color-accent)] bg-[var(--color-accent-bg)] px-1 rounded">/tmp/Life_Quest</code> in Docker by default).
+          Enter a repo name and an absolute path that the backend process can access. This is local developer mode until GitHub installation is wired into the dashboard.
         </p>
         <form onSubmit={handleScan} className="flex flex-col sm:flex-row gap-3">
           <input
-            type="text" value={scanName} onChange={e => setScanName(e.target.value)}
+            type="text"
+            value={scanName}
+            onChange={event => setScanName(event.target.value)}
             placeholder="Repo name (e.g. my-org/frontend)"
             className="flex-1 bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
           />
           <input
-            type="text" value={scanPath} onChange={e => setScanPath(e.target.value)}
-            placeholder="Server path (e.g. /tmp/Life_Quest)"
+            type="text"
+            value={scanPath}
+            onChange={event => setScanPath(event.target.value)}
+            placeholder="Server path (e.g. E:/projects/app)"
             className="flex-1 bg-[var(--color-background-3)] border border-[var(--color-border-main)] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono"
           />
-          <button type="submit" disabled={scanning || !scanPath || !scanName}
-            className="btn-primary text-xs px-5 disabled:opacity-60 whitespace-nowrap">
-            {scanning ? 'Scanning...' : '▶ Start Scan'}
+          <button
+            type="submit"
+            disabled={scanning || !scanPath || !scanName}
+            className="btn-primary text-xs px-5 disabled:opacity-60 whitespace-nowrap"
+          >
+            {scanning ? 'Scanning...' : 'Start Scan'}
           </button>
         </form>
         {scanMsg && (
-          <p className={`mt-3 text-xs font-mono ${scanMsg.startsWith('✓') ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'}`}>
+          <p className={`mt-3 text-xs font-mono ${scanMsg.startsWith('Scan started') ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'}`}>
             {scanMsg}
           </p>
         )}
       </div>
 
-      {/* Initial loading / empty state */}
       {!loaded && !error && loading && (
         <div className="text-center py-16 text-[var(--color-text-muted)] font-mono text-sm">
           <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -185,7 +183,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {repos.map(repo => (
-          <a key={repo.id} href={`/dashboard/${repo.id}`} className="card hover:border-[var(--color-accent-sub)] transition-colors cursor-pointer group block">
+          <Link key={repo.id} href={`/dashboard/${repo.id}`} className="card hover:border-[var(--color-accent-sub)] transition-colors cursor-pointer group block">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-mono text-sm font-medium text-[var(--color-text-main)] group-hover:text-[var(--color-accent)] transition-colors">
                 {repo.full_name}
@@ -205,7 +203,7 @@ export default function DashboardPage() {
             <div className="mt-4 pt-4 border-t border-[var(--color-border-sub)] text-[10px] font-mono text-[var(--color-text-muted)]">
               LAST SCANNED: {repo.last_scanned_at ? new Date(repo.last_scanned_at).toLocaleDateString() : 'N/A'}
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </div>

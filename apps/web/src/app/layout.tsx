@@ -35,9 +35,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body suppressHydrationWarning className="min-h-screen bg-[var(--color-background)] text-[var(--color-text-main)] font-sans">
         <NavBar />
-        <main>
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   )

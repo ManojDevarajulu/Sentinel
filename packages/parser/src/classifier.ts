@@ -8,10 +8,10 @@ export function classifyNode(filePath: string, fileContent: string): NodeType {
   if (normalizedPath.endsWith('middleware.ts') || normalizedPath.endsWith('middleware.tsx')) {
     return NodeType.MIDDLEWARE;
   }
-  if (normalizedPath.match(/\/app\/.*\/page\.tsx?$/)) {
+  if (normalizedPath.match(/\/app\/(?:.*\/)?page\.tsx?$/)) {
     return NodeType.PAGE;
   }
-  if (normalizedPath.match(/\/app\/.*\/layout\.tsx?$/)) {
+  if (normalizedPath.match(/\/app\/(?:.*\/)?layout\.tsx?$/)) {
     return NodeType.LAYOUT;
   }
   if (normalizedPath.match(/\/app\/api\/.*\/route\.tsx?$/)) {
@@ -24,7 +24,10 @@ export function classifyNode(filePath: string, fileContent: string): NodeType {
   }
 
   // Content Rules
-  if (fileContent.includes('@supabase/supabase-js') || fileContent.includes('createClient(')) {
+  if (
+    normalizedPath.includes('/supabase/client.') ||
+    (fileContent.includes('@supabase/supabase-js') && fileContent.includes('createClient('))
+  ) {
     return NodeType.SUPABASE_CLIENT;
   }
   

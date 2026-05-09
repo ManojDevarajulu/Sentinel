@@ -53,8 +53,10 @@ packages/action/dist/
 packages/parser/dist/
 exhaustive_plan.txt
 exhaustive_plan_utf8.txt
-sentinel_complete_master_blueprint.html
+sentinel-master-blueprint.html
 GuardRail_Exhaustive_Implementation_Plan.docx
 implementation.md
 *.md
 !README.md
+.pytest_cache/
+**/ .pytest_cache/

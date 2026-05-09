@@ -1,5 +1,5 @@
 import fs from 'fs';
-import crypto from 'crypto';
+import path from 'path';
 import { walkRepo } from './walker.js';
 import { parseFile } from './extractor.js';
 import { classifyNode, computeDisplayName } from './classifier.js';
@@ -18,13 +18,17 @@ export async function buildGraph(repoPath: string): Promise<ParseResult> {
     const content = fs.readFileSync(file, 'utf8');
     const nodeType = classifyNode(file, content);
     const displayName = computeDisplayName(file, repoPath);
+    const relativePath = path.relative(repoPath, file).replace(/\\/g, '/');
     
     nodeMap.set(file, {
-      id: crypto.randomUUID(),
-      filePath: file,
+      // Use repo-relative file paths as stable parser IDs.
+      id: relativePath,
+      filePath: relativePath,
       nodeType,
       displayName,
-      importanceScore: 0
+      importanceScore: 0,
+      imports: [],
+      exports: []
     });
   }
   
@@ -38,6 +42,7 @@ export async function buildGraph(repoPath: string): Promise<ParseResult> {
     const sourceNode = nodeMap.get(file);
     
     if (!sourceNode) continue;
+    sourceNode.imports = imports;
     
     for (const imp of imports) {
       const resolvedTarget = resolveImport(imp, file, repoPath);
@@ -45,7 +50,7 @@ export async function buildGraph(repoPath: string): Promise<ParseResult> {
         const targetNode = nodeMap.get(resolvedTarget)!;
         
         edges.push({
-          id: crypto.randomUUID(),
+          id: `${sourceNode.id}->${targetNode.id}`,
           sourceId: sourceNode.id,
           targetId: targetNode.id,
           edgeType: EdgeType.IMPORT,

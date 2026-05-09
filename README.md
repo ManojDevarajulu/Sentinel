@@ -1,127 +1,99 @@
-# Sentinel 🛡️
+# Sentinel
 
-**The Safety Layer for AI-Generated Code.**
+**Prototype/beta for blast-radius analysis of AI-generated code changes.**
 
-Sentinel is a high-performance dependency analysis engine designed to compute the "Blast Radius" of code changes in real-time. In an age where AI agents like Cursor and Claude Code can generate hundreds of lines of code in seconds, Sentinel provides the visibility needed to ensure that no PR silently breaks production.
+Sentinel is a monorepo for scanning codebases into dependency graphs, computing blast radius from changed files, and surfacing the result in a dashboard and GitHub pull-request workflow.
 
----
+## What Is Real Today
 
-## 🚀 Key Features
+- `apps/web`: Next.js frontend with landing page, auth, dashboard repo list, scan trigger, and graph viewer shell
+- `apps/api`: FastAPI backend with scan and blast-radius endpoints
+- `packages/parser`: JS/TS parser that builds graph nodes and edges from repo files
+- `supabase/migrations`: schema history for repos, graph data, analyses, waitlist, and MCP usage
 
-- **AST-Powered Graph Engine**: Deeply parses TypeScript, JavaScript, and Python codebases to build a comprehensive dependency graph natively.
-- **Blast Radius Analysis**: Uses reverse BFS (Breadth-First Search) to identify every file affected by a change, up to 4 hops away.
-- **Risk Scoring**: Sophisticated algorithm that scores PRs based on volume, node criticality (e.g., middleware, layouts), and dependency importance.
-- **Interactive Dashboard**: A premium React Flow-based visualization of your codebase with:
-    - 🔥 **Heatmap Mode**: Instantly identify "load-bearing" files with a pulsing red glow.
-    - 📋 **Node Sidebar**: Deep dive into any file's AI summaries, dependencies, and risk metrics.
-- **GitHub Action Integration**: Automatically posts blast radius reports directly to your Pull Requests.
+## Current Status
 
----
+This repository is **not production-ready yet**. It should be treated as a recovery-phase prototype.
 
-## 🏗️ Architecture
+Working now:
+- client-side auth flow
+- local repo scan initiation
+- graph generation foundation
+- dashboard navigation and repo browsing
 
-Sentinel is built as a high-performance monorepo using **npm workspaces**:
+Under active repair:
+- parser -> scanner -> DB contract consistency
+- blast-radius correctness and critical path reconstruction
+- graph UI truthfulness
+- admin authorization
+- GitHub Action integration
+
+Planned, but not yet trustworthy:
+- AI summaries
+- PR Guardian / merge-blocking workflows
+- billing and plan gating
+- MCP server integration
+
+## Architecture Status
+
+Current implemented loop:
+1. user signs in via Supabase
+2. user creates a repo record and triggers a scan
+3. API runs parser and persists graph data
+4. blast-radius endpoint reads graph data and computes affected nodes
+5. web dashboard reads graph data and displays repo graph state
+
+Known gaps:
+- some contracts were previously inconsistent across parser, scanner, DB, API, and UI
+- some UI surfaces still need removal of placeholder content
+- several roadmap docs are broader than the currently implemented product
+
+Next milestones:
+1. align graph contracts end-to-end
+2. validate blast radius on real repos
+3. make graph viewer fully data-driven
+4. finish real PR analysis integration
+
+## Repository Layout
 
 ```text
-├── apps/
-│   ├── web/             # Next.js 14 Dashboard (App Router, Tailwind, React Flow)
-│   └── api/             # FastAPI Backend (Python, BFS Logic, Celery Worker, AST Parsers)
-├── packages/
-│   ├── parser/          # Core JS/TS AST Parser (Bun, typescript-estree)
-│   └── action/          # GitHub Action (TypeScript, Bundled with ncc)
-└── supabase/            # Database Schema & Migrations
+apps/
+  api/        FastAPI API, scan pipeline, blast-radius logic
+  web/        Next.js frontend and dashboard
+packages/
+  parser/     JS/TS dependency graph parser
+  action/     GitHub Action for PR analysis
+supabase/
+  migrations/ Database schema and contract migrations
 ```
 
-### Technology Stack
-- **Frontend**: Next.js, React Flow, Tailwind CSS, shadcn/ui.
-- **Backend**: FastAPI, Pydantic, Celery, Redis.
-- **Parser**: Bun (TS/JS), Python AST module.
-- **Database**: Supabase (PostgreSQL + pgvector).
-- **AI**: Anthropic Claude Haiku (for summaries).
+## Local Development
 
----
-
-## 🛠️ Getting Started
-
-### Prerequisites
-- **Node.js** (v20+)
-- **Python** (3.10+)
-- **Bun** (for the parser)
-- **Supabase Account**
-
-### Installation
-
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/your-repo/sentinel.git
-   cd sentinel
-   ```
-
-2. **Install Workspace Dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Setup Backend**:
-   ```bash
-   cd apps/api
-   python -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-   ```
-
-4. **Environment Variables**:
-   Create a `.env` in the root with:
-   ```text
-   SUPABASE_URL=your_url
-   SUPABASE_ANON_KEY=your_key
-   ANTHROPIC_API_KEY=your_key
-   ```
-
----
-
-## 🖥️ Running Locally (Docker)
-
-The absolute easiest way to run the entire stack (Next.js, FastAPI, Celery, Redis) is using Docker Compose:
+### Web
 
 ```bash
-docker compose up -d --build
+cd apps/web
+npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000).
 
-### Manual Start (Alternative)
+### API
 
-### Start the API Server
 ```bash
 cd apps/api
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8001
 ```
 
-### Run a Repository Scan
+### Parser
+
 ```bash
 cd packages/parser
-bun run src/index.ts --path /path/to/your/repo
+bun run src/index.ts /path/to/repo
 ```
 
----
+## Roadmap References
 
-## 🗺️ Roadmap
+The following files are roadmap/reference materials, not implementation truth:
+- `GuardRail_Exhaustive_Implementation_Plan.docx`
+- `sentinel_complete_master_blueprint.html`
 
-- [x] Phase 1: Core Engine & Parser
-- [x] Phase 2: Premium Dashboard UI
-- [x] Phase 2.5: GitHub OAuth & Supabase Integration 
-- [x] Phase 2.8: Python Support & Docker Containerization
-- [ ] Phase 3: AI-Generated Technical Summaries (Anthropic Haiku)
-- [ ] Phase 3.5: Vector Embeddings (pgvector)
-- [ ] Phase 4: Stripe Billing & Plan Gating
-- [ ] Phase 5: MCP Server for Cursor/Claude Code
-
----
-
-## 📄 License
-
-Sentinel is licensed under the **AGPL v3 License**.
-
----
-
-Built for speed. Built for safety. Built for the AI age.
+Use the codebase and `bug_fixes.md` / this README as the current truth source when implementing or debugging.

@@ -4,8 +4,11 @@ inputs:
   api_url:
     description: "Sentinel API URL"
     required: true
-  api_key:
-    description: "Sentinel API Key"
+  repo_id:
+    description: "Sentinel repo identifier"
+    required: true
+  github_token:
+    description: "GitHub token used to read PR files and post comments"
     required: true
 runs:
   using: "node20"

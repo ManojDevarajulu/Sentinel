@@ -7,3 +7,6 @@ apps/web/.next/
 apps/api/venv/
 __pycache__/
 *.pyc
+.pytest_cache
+**/.pytest_cache
+apps/api/.pytest_cache

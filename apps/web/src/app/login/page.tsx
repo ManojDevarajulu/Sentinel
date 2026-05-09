@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function LoginPage() {
+// BUG-13 FIX: component that uses useSearchParams must be wrapped in Suspense
+function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard'
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,18 +25,17 @@ export default function LoginPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        const redirectTo = searchParams.get('redirectTo') || '/dashboard'
         router.replace(redirectTo)
       } else {
         setCheckingAuth(false)
       }
     })
-  }, [router, searchParams])
+  }, [redirectTo, router])
 
   const handleGitHubLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: `${window.location.origin}/` }
+      options: { redirectTo: `${window.location.origin}${redirectTo}` }
     })
     if (error) setMessage({ type: 'error', text: error.message })
   }
@@ -87,7 +88,6 @@ export default function LoginPage() {
       if (error) {
         setMessage({ type: 'error', text: error.message })
       } else {
-        const redirectTo = searchParams.get('redirectTo') || '/dashboard'
         router.push(redirectTo)
       }
     }
@@ -97,7 +97,14 @@ export default function LoginPage() {
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase.from('waitlist').insert([{ name, email, feedback }])
+    const { error } = await supabase.from('waitlist').insert([{
+      email,
+      metadata: {
+        name,
+        feedback,
+        source: 'login-page',
+      }
+    }])
     setLoading(false)
     if (error) {
       if (error.code === '23505') {
@@ -288,5 +295,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginPageInner />
+    </Suspense>
   )
 }
