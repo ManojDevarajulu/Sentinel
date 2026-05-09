@@ -12,3 +12,4 @@ PyGithub
 stripe
 resend
 pytest
+python-multipart
