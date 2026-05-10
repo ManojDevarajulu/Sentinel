@@ -33,6 +33,10 @@ function LoginPageInner() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
+        // Store the GitHub provider token so the dashboard can call the GitHub API
+        if (session.provider_token) {
+          localStorage.setItem('gh_token', session.provider_token)
+        }
         router.replace(redirectTo)
       } else if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
         setCheckingAuth(false)
@@ -45,7 +49,10 @@ function LoginPageInner() {
   const handleGitHubLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
-      options: { redirectTo: `${window.location.origin}${redirectTo}` }
+      options: {
+        redirectTo: `${window.location.origin}${redirectTo}`,
+        scopes: 'repo read:user',
+      }
     })
     if (error) setMessage({ type: 'error', text: error.message })
   }

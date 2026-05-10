@@ -32,6 +32,7 @@ class ScanRequest(BaseModel):
 class GitHubScanRequest(BaseModel):
     repo_id: str
     github_url: str
+    github_token: str | None = None
 
 @router.post("/{repo_id}/scan")
 async def scan_repository(repo_id: str, payload: ScanRequest, token=Depends(verify_token)):
@@ -130,7 +131,10 @@ async def scan_github_repository(repo_id: str, payload: GitHubScanRequest, token
         shutil.rmtree(tmp_dir)
     
     try:
-        subprocess.run(["git", "clone", "--depth", "1", payload.github_url, tmp_dir], check=True, capture_output=True)
+        clone_url = payload.github_url
+        if payload.github_token and clone_url.startswith("https://github.com/"):
+            clone_url = clone_url.replace("https://github.com/", f"https://oauth2:{payload.github_token}@github.com/")
+        subprocess.run(["git", "clone", "--depth", "1", clone_url, tmp_dir], check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=400, detail=f"Failed to clone repository: {e.stderr.decode('utf-8') if e.stderr else 'Unknown error'}")
         
