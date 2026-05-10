@@ -103,10 +103,19 @@ export default function DashboardPage() {
   }, [tab, ghToken, ghRepos.length])
 
   const reAuthorizeGitHub = async () => {
-    await supabase.auth.signInWithOAuth({
+    // Use linkIdentity so we keep the existing user session (no new user created).
+    // This also requests repo scope to get a provider_token for listing repos.
+    const { error } = await supabase.auth.linkIdentity({
       provider: 'github',
       options: { redirectTo: window.location.href, scopes: 'repo read:user' }
     })
+    if (error) {
+      // Fallback: if already linked, do a fresh OAuth to get a new provider_token
+      await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: { redirectTo: window.location.href, scopes: 'repo read:user' }
+      })
+    }
   }
 
   const handleImport = async (ghRepo: GHRepo) => {
