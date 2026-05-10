@@ -241,8 +241,10 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
   }
 
   return (
-    <div className="w-full h-full bg-[var(--color-background)] relative overflow-hidden" style={{ minHeight: '600px' }}>
-      {/* Controls bar */}
+    <div className="w-full h-full flex bg-[var(--color-background)] overflow-hidden" style={{ minHeight: '600px' }}>
+      {/* Canvas Area */}
+      <div className="flex-grow relative h-full">
+        {/* Controls bar */}
       <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 max-w-[65%]">
         <input
           value={search} onChange={e => setSearch(e.target.value)} placeholder="Search files…"
@@ -332,7 +334,8 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
       )}
 
       {/* Right panel — selected node details OR top files */}
-      <div className={`absolute top-0 right-0 h-full w-72 bg-[rgba(17,17,20,0.97)] backdrop-blur-md border-l border-[var(--color-border-main)] shadow-2xl transition-transform duration-300 z-20 overflow-y-auto ${(selectedNode || true) ? 'translate-x-0' : 'translate-x-full'}`}>
+      </div>
+      <div className="flex-shrink-0 h-full w-72 bg-[rgba(17,17,20,0.97)] backdrop-blur-md border-l border-[var(--color-border-main)] shadow-2xl z-20 overflow-y-auto">
         {selectedNode ? (
           <div className="flex flex-col">
             <div className="p-4 border-b border-[var(--color-border-main)] flex justify-between items-start sticky top-0 bg-[rgba(17,17,20,0.97)]">
