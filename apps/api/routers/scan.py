@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends, Security, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, Security, UploadFile, File, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from db import get_db
-from tasks.scanner import run_repo_scan
+from tasks.scanner import run_repo_scan_sync
 import os
 import shutil
 import zipfile
@@ -12,10 +12,8 @@ router = APIRouter(prefix="/repos", tags=["repos"])
 security = HTTPBearer()
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):
-    # Verify the Supabase JWT
     if not credentials or not credentials.credentials:
         raise HTTPException(status_code=401, detail="Invalid or missing token")
-        
     db = get_db()
     try:
         user_response = db.auth.get_user(credentials.credentials)
@@ -35,69 +33,57 @@ class GitHubScanRequest(BaseModel):
     github_token: str | None = None
 
 @router.post("/{repo_id}/scan")
-async def scan_repository(repo_id: str, payload: ScanRequest, token=Depends(verify_token)):
+async def scan_repository(repo_id: str, payload: ScanRequest, background_tasks: BackgroundTasks, token=Depends(verify_token)):
     if repo_id != payload.repo_id:
         raise HTTPException(status_code=400, detail="Path parameter repo_id must match payload repo_id")
-        
+
     db = get_db()
     user_id = getattr(token, "id", None)
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
-    
-    repo = (
-        db.table("repos")
-        .select("id, user_id")
-        .eq("id", repo_id)
-        .execute()
-    )
+
+    repo = db.table("repos").select("id, user_id").eq("id", repo_id).execute()
     if not repo.data:
         raise HTTPException(status_code=404, detail="Repository not found or not owned by this user")
-        
-    # Insert a new scan job
-    job_insert = db.table("scan_jobs").insert({
-        "repo_id": repo_id,
-        "status": "pending"
-    }).execute()
-    
+
+    job_insert = db.table("scan_jobs").insert({"repo_id": repo_id, "status": "pending"}).execute()
     if not job_insert.data:
         raise HTTPException(status_code=500, detail="Failed to create scan job")
-        
     job_id = job_insert.data[0]["id"]
-    
-    # Dispatch Celery task asynchronously
-    run_repo_scan.delay(job_id, repo_id, payload.repo_path)
-    
+
+    # Run synchronously in background (no Redis/Celery needed)
+    background_tasks.add_task(run_repo_scan_sync, job_id, repo_id, payload.repo_path)
     return {"status": "accepted", "job_id": job_id}
 
 @router.post("/{repo_id}/upload")
-async def upload_and_scan(repo_id: str, file: UploadFile = File(...), token=Depends(verify_token)):
+async def upload_and_scan(repo_id: str, background_tasks: BackgroundTasks, file: UploadFile = File(...), token=Depends(verify_token)):
     db = get_db()
     user_id = getattr(token, "id", None)
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
-    
+
     repo = db.table("repos").select("id").eq("id", repo_id).execute()
     if not repo.data:
         raise HTTPException(status_code=404, detail="Repository not found")
 
     tmp_dir = f"/tmp/sentinel_scans/{repo_id}"
     os.makedirs(tmp_dir, exist_ok=True)
-    
+
     zip_path = os.path.join(tmp_dir, "upload.zip")
     with open(zip_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-        
+
     extract_dir = os.path.join(tmp_dir, "extracted")
     if os.path.exists(extract_dir):
         shutil.rmtree(extract_dir)
     os.makedirs(extract_dir, exist_ok=True)
-    
+
     try:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_dir)
     except zipfile.BadZipFile:
         raise HTTPException(status_code=400, detail="Invalid zip file")
-        
+
     scan_target = extract_dir
     extracted_items = os.listdir(extract_dir)
     if len(extracted_items) == 1 and os.path.isdir(os.path.join(extract_dir, extracted_items[0])):
@@ -105,29 +91,28 @@ async def upload_and_scan(repo_id: str, file: UploadFile = File(...), token=Depe
 
     job_insert = db.table("scan_jobs").insert({"repo_id": repo_id, "status": "pending"}).execute()
     job_id = job_insert.data[0]["id"]
-    
-    run_repo_scan.delay(job_id, repo_id, scan_target)
-    
+
+    background_tasks.add_task(run_repo_scan_sync, job_id, repo_id, scan_target)
     return {"status": "accepted", "job_id": job_id}
 
 @router.post("/{repo_id}/scan-github")
-async def scan_github_repository(repo_id: str, payload: GitHubScanRequest, token=Depends(verify_token)):
+async def scan_github_repository(repo_id: str, payload: GitHubScanRequest, background_tasks: BackgroundTasks, token=Depends(verify_token)):
     if repo_id != payload.repo_id:
         raise HTTPException(status_code=400, detail="Path parameter repo_id must match payload repo_id")
-        
+
     db = get_db()
     user_id = getattr(token, "id", None)
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
-    
+
     repo = db.table("repos").select("id").eq("id", repo_id).execute()
     if not repo.data:
         raise HTTPException(status_code=404, detail="Repository not found")
-        
+
     tmp_dir = f"/tmp/sentinel_scans/{repo_id}/cloned"
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
-    
+
     try:
         clone_url = payload.github_url
         if payload.github_token and clone_url.startswith("https://github.com/"):
@@ -135,11 +120,10 @@ async def scan_github_repository(repo_id: str, payload: GitHubScanRequest, token
         subprocess.run(["git", "clone", "--depth", "1", clone_url, tmp_dir], check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=400, detail=f"Failed to clone repository: {e.stderr.decode('utf-8') if e.stderr else 'Unknown error'}")
-        
+
     job_insert = db.table("scan_jobs").insert({"repo_id": repo_id, "status": "pending"}).execute()
     job_id = job_insert.data[0]["id"]
-    
-    run_repo_scan.delay(job_id, repo_id, tmp_dir)
-    
-    return {"status": "accepted", "job_id": job_id}
 
+    # Run the scan in the background without needing Redis/Celery
+    background_tasks.add_task(run_repo_scan_sync, job_id, repo_id, tmp_dir)
+    return {"status": "accepted", "job_id": job_id}

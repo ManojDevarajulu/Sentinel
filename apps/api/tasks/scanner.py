@@ -30,15 +30,8 @@ def _node_type(node: dict) -> str:
         or "other"
     )
     known_types = {
-        "page",
-        "component",
-        "hook",
-        "api_route",
-        "middleware",
-        "layout",
-        "supabase_client",
-        "util",
-        "other",
+        "page", "component", "hook", "api_route",
+        "middleware", "layout", "supabase_client", "util", "other",
     }
     return node_type if node_type in known_types else "other"
 
@@ -50,24 +43,21 @@ def _display_name(node: dict, file_path: str) -> str:
         or os.path.basename(file_path)
     )
 
-@shared_task(bind=True)
-def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
+
+def _do_scan(job_id: str, repo_id: str, repo_path: str):
+    """Core scan logic — shared by both sync and Celery task versions."""
     db = get_db()
-    
+
     try:
-        # Sanitize and validate repo_path
         repo_path = os.path.abspath(repo_path)
-            
+
         if not os.path.exists(repo_path) or not os.path.isdir(repo_path):
             raise ValueError(f"Invalid repository path: {repo_path}")
-            
-        # Update job status to running
+
         db.table("scan_jobs").update({"status": "running"}).eq("id", job_id).execute()
-        
-        # Determine the absolute path to the bun script
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # Determine language
+
         py_files = list(Path(repo_path).rglob("*.py"))
         ts_files = (
             list(Path(repo_path).rglob("*.ts"))
@@ -75,31 +65,24 @@ def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
             + list(Path(repo_path).rglob("*.js"))
             + list(Path(repo_path).rglob("*.jsx"))
         )
-        
+
         if len(py_files) > len(ts_files):
-            # Python routing
             parser_path = os.path.normpath(os.path.join(current_dir, "python_parser.py"))
             logger.info(f"Running python parser for {repo_path}")
             result = subprocess.run(
                 ["python", parser_path, repo_path],
-                capture_output=True,
-                text=True,
-                check=True
+                capture_output=True, text=True, check=True
             )
         else:
-            # JS/TS routing
             parser_path = os.path.normpath(os.path.join(current_dir, "../../..", "packages", "parser", "src", "index.ts"))
             logger.info(f"Running bun parser for {repo_path}")
             result = subprocess.run(
                 ["bun", "run", parser_path, repo_path],
-                capture_output=True,
-                text=True,
-                check=True
+                capture_output=True, text=True, check=True
             )
-        
-        # Parse JSON output
+
         graph_data = json.loads(result.stdout)
-        
+
         nodes_to_insert = []
         for node in graph_data.get("nodes", []):
             file_path = _node_file_path(node)
@@ -115,18 +98,14 @@ def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
                 "exports": node.get("exports", []),
                 "imports": node.get("imports", [])
             })
-            
-        # Optimization: Insert nodes
+
         if nodes_to_insert:
-            # We do an upsert on repo_id and file_path
             db.table("graph_nodes").upsert(nodes_to_insert, on_conflict="repo_id,file_path").execute()
-            
-        # Get all nodes for this repo to map file_path -> uuid
+
         db_nodes = db.table("graph_nodes").select("id, file_path").eq("repo_id", repo_id).execute()
         path_to_uuid = {n["file_path"]: n["id"] for n in db_nodes.data}
-        
+
         edges_to_insert = []
-        # Prepare edges with UUIDs
         for edge in graph_data.get("edges", []):
             source_ref = _normalize_repo_path(
                 edge.get("sourceId") or edge.get("source_node_id") or edge.get("source") or ""
@@ -144,22 +123,32 @@ def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
                     "edge_type": edge.get("edgeType", edge.get("edge_type", edge.get("type", "import"))),
                     "weight": edge.get("weight", 1)
                 })
-                
+
         if edges_to_insert:
             db.table("graph_edges").upsert(edges_to_insert, on_conflict="source_node_id,target_node_id").execute()
-            
-        # Mark job as completed
+
         db.table("scan_jobs").update({"status": "done"}).eq("id", job_id).execute()
+        logger.info(f"Scan completed: {len(nodes_to_insert)} nodes, {len(edges_to_insert)} edges")
         return {"status": "success", "nodes": len(nodes_to_insert), "edges": len(edges_to_insert)}
-        
+
     except Exception as e:
         logger.error(f"Scan job failed: {str(e)}")
-        # If it fails, update job status to failed
         try:
             db.table("scan_jobs").update({
-                "status": "failed", 
+                "status": "failed",
                 "error_message": str(e)
             }).eq("id", job_id).execute()
         except:
             pass
         raise e
+
+
+def run_repo_scan_sync(job_id: str, repo_id: str, repo_path: str):
+    """Synchronous entry point — used by FastAPI BackgroundTasks (no Redis/Celery needed)."""
+    _do_scan(job_id, repo_id, repo_path)
+
+
+@shared_task(bind=True)
+def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
+    """Celery task entry point — used when Redis broker is available."""
+    _do_scan(job_id, repo_id, repo_path)
