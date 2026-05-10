@@ -202,12 +202,50 @@ def build_graph(repo_path: str) -> dict:
                 })
                 import_count[target] = import_count.get(target, 0) + 1
 
-    # Phase 3: Compute importance scores
-    for node in nodes:
-        fp = node["file_path"]
-        node["importance_score"] = compute_importance(
-            node["node_type"], import_count.get(fp, 0)
-        )
+    # Phase 3: PageRank-based importance scoring
+    node_ids = [n["id"] for n in nodes]
+    N = len(node_ids)
+
+    if N > 0:
+        out_edges: dict[str, list[str]] = {nid: [] for nid in node_ids}
+        in_edges: dict[str, list[str]] = {nid: [] for nid in node_ids}
+        for edge in edges:
+            src, tgt = edge["source"], edge["target"]
+            if src in out_edges and tgt in in_edges:
+                out_edges[src].append(tgt)
+                in_edges[tgt].append(src)
+
+        # Iterative PageRank (damping=0.85, 30 iterations)
+        damping = 0.85
+        rank = {nid: 1.0 / N for nid in node_ids}
+        for _ in range(30):
+            new_rank = {}
+            for nid in node_ids:
+                incoming = sum(
+                    rank[src] / max(len(out_edges[src]), 1)
+                    for src in in_edges[nid]
+                )
+                new_rank[nid] = (1 - damping) / N + damping * incoming
+            rank = new_rank
+
+        # Normalize PageRank to 0–100
+        max_r = max(rank.values())
+        min_r = min(rank.values())
+        rng = max_r - min_r if max_r != min_r else 1.0
+        pr_score = {nid: int(((rank[nid] - min_r) / rng) * 70) for nid in node_ids}
+
+        # Blend: 30% type-base + 70% PageRank
+        type_base = {
+            "middleware": 90, "layout": 80, "api_route": 60, "hook": 55,
+            "supabase_client": 50, "page": 40, "component": 30, "util": 25, "other": 10,
+        }
+        for node in nodes:
+            fp = node["file_path"]
+            base = type_base.get(node["node_type"], 10)
+            node["importance_score"] = min(100, int(base * 0.3 + pr_score.get(fp, 0)))
+    else:
+        for node in nodes:
+            node["importance_score"] = 0
 
     return {"nodes": nodes, "edges": edges}
 
@@ -219,3 +257,4 @@ if __name__ == "__main__":
 
     graph = build_graph(sys.argv[1])
     print(json.dumps(graph))
+
