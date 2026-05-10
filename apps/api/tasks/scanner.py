@@ -75,11 +75,10 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
             )
         else:
             # JS/TS routing — try multiple possible parser locations
-            # current_dir is .../tasks, parser could be at different paths depending on deployment
             candidates = [
-                os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts")),          # Docker: /app/packages/parser
-                os.path.normpath(os.path.join(current_dir, "..", "..", "..", "packages", "parser", "src", "index.ts")), # Render native: /opt/render/project/src/packages/parser
-                os.path.normpath(os.path.join(current_dir, "..", "..", "packages", "parser", "src", "index.ts")),      # Other layouts
+                os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts")),
+                os.path.normpath(os.path.join(current_dir, "..", "..", "..", "packages", "parser", "src", "index.ts")),
+                os.path.normpath(os.path.join(current_dir, "..", "..", "packages", "parser", "src", "index.ts")),
             ]
             parser_path = None
             for c in candidates:
@@ -88,11 +87,30 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
                     break
             if not parser_path:
                 raise FileNotFoundError(f"TypeScript parser not found. Tried: {candidates}")
+
+            # Auto-install parser dependencies if not present
+            parser_dir = os.path.dirname(os.path.dirname(parser_path))  # go up from src/index.ts to parser/
+            node_modules = os.path.join(parser_dir, "node_modules")
+            if not os.path.exists(node_modules):
+                logger.info(f"Installing parser dependencies in {parser_dir}...")
+                install_result = subprocess.run(
+                    ["bun", "install"], cwd=parser_dir,
+                    capture_output=True, text=True, timeout=120
+                )
+                if install_result.returncode != 0:
+                    logger.error(f"bun install failed: {install_result.stderr}")
+                    raise RuntimeError(f"Failed to install parser deps: {install_result.stderr}")
+                logger.info("Parser dependencies installed successfully")
+
             logger.info(f"Running bun parser for {repo_path} using {parser_path}")
             result = subprocess.run(
                 ["bun", "run", parser_path, repo_path],
-                capture_output=True, text=True, check=True
+                capture_output=True, text=True
             )
+            if result.returncode != 0:
+                logger.error(f"Bun parser stderr: {result.stderr}")
+                logger.error(f"Bun parser stdout: {result.stdout}")
+                raise RuntimeError(f"Parser failed (exit {result.returncode}): {result.stderr[:500]}")
 
         graph_data = json.loads(result.stdout)
 
