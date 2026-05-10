@@ -2,12 +2,24 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Install system deps: git for cloning, curl for bun installer, unzip for bun
+RUN apt-get update && apt-get install -y git curl unzip && rm -rf /var/lib/apt/lists/*
+
+# Install bun (needed for TypeScript/JS repo parsing)
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
+# Install Python dependencies
 COPY apps/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy the TypeScript parser package and install its deps
+COPY packages/parser /app/packages/parser
+WORKDIR /app/packages/parser
+RUN bun install
+
+# Copy API source code
+WORKDIR /app
 COPY apps/api/ .
 
 EXPOSE 8000

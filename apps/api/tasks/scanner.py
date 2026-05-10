@@ -74,8 +74,10 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
                 capture_output=True, text=True, check=True
             )
         else:
-            parser_path = os.path.normpath(os.path.join(current_dir, "../../..", "packages", "parser", "src", "index.ts"))
-            logger.info(f"Running bun parser for {repo_path}")
+            # JS/TS routing — parser is at /app/packages/parser/src/index.ts in container
+            # current_dir is /app/tasks, so go up to /app then into packages/parser
+            parser_path = os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts"))
+            logger.info(f"Running bun parser for {repo_path} using {parser_path}")
             result = subprocess.run(
                 ["bun", "run", parser_path, repo_path],
                 capture_output=True, text=True, check=True
