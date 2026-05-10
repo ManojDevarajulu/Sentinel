@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo, useState, useCallback } from 'react';
-import ReactFlow, { Background, Controls, MiniMap, Node, Edge, useReactFlow, ReactFlowProvider } from 'reactflow';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import ReactFlow, {
+  Background, Controls, MiniMap, Node, Edge,
+  useReactFlow, ReactFlowProvider,
+  useNodesState, useEdgesState,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import type { GraphViewEdge, GraphViewNode } from '@/lib/api';
 
@@ -42,6 +46,9 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
   const [heatmap, setHeatmap] = useState(false);
   const [groupByFolder, setGroupByFolder] = useState(false);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; node: GraphViewNode } | null>(null);
+  const { fitView } = useReactFlow();
+  const [rfNodes, setRfNodes, onNodesChange] = useNodesState([]);
+  const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState([]);
 
   // Adjacency maps
   const { deps, dependents, inDegree, outDegree } = useMemo(() => {
@@ -93,7 +100,26 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
   }, [filteredNodes, groupByFolder]);
 
   // Build ReactFlow nodes
-  const graphNodes: Node[] = useMemo(() => {
+  // Auto-organize layout: columns by type, sorted by importance
+  const organizeNodes = useCallback(() => {
+    const order = ['middleware','layout','api_route','hook','supabase_client','page','component','util','other'];
+    const grouped = new Map<string, GraphViewNode[]>();
+    filteredNodes.slice().sort((a,b) => b.importanceScore - a.importanceScore).forEach(n => {
+      const key = order.includes(n.nodeType) ? n.nodeType : 'other';
+      grouped.set(key, [...(grouped.get(key)||[]), n]);
+    });
+    const updates: Record<string, {x:number;y:number}> = {};
+    order.forEach((grp, col) => {
+      (grouped.get(grp)||[]).forEach((node, row) => {
+        const w = nodeWidth(node.importanceScore);
+        updates[node.id] = { x: 80 + col * (w + 60), y: 80 + row * 140 };
+      });
+    });
+    setRfNodes(nds => nds.map(n => updates[n.id] ? { ...n, position: updates[n.id] } : n));
+    setTimeout(() => fitView({ padding: 0.15, duration: 500 }), 50);
+  }, [filteredNodes, setRfNodes, fitView]);
+
+  const computedGraphNodes: Node[] = useMemo(() => {
     const order = ['middleware', 'layout', 'api_route', 'hook', 'supabase_client', 'page', 'component', 'util', 'other'];
     const grouped = new Map<string, GraphViewNode[]>();
     filteredNodes.slice().sort((a, b) => b.importanceScore - a.importanceScore).forEach(n => {
@@ -138,6 +164,7 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
 
         return {
           id: node.id,
+          draggable: true,
           position: { x: 80 + col * (w + 60), y: 80 + row * 140 },
           data: {
             label: (
@@ -171,7 +198,7 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
     });
   }, [filteredNodes, blastRadius, heatmap]);
 
-  const graphEdges: Edge[] = useMemo(() => {
+  const computedGraphEdges: Edge[] = useMemo(() => {
     return initialEdges
       .filter(e => filteredIds.has(e.source) && filteredIds.has(e.target))
       .map(e => {
@@ -190,6 +217,10 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
   }, [initialEdges, filteredIds, blastRadius, heatmap]);
 
   const selectedNode = useMemo(() => initialNodes.find(n => n.id === selectedId) || null, [initialNodes, selectedId]);
+
+  // Sync computed nodes/edges into stateful versions after they are computed (enables drag)
+  useEffect(() => { setRfNodes(computedGraphNodes); }, [computedGraphNodes]);
+  useEffect(() => { setRfEdges(computedGraphEdges); }, [computedGraphEdges]);
 
   // Top files panel (when nothing selected)
   const topFiles = useMemo(() =>
@@ -235,6 +266,10 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
             Clear Focus
           </button>
         )}
+        <button onClick={organizeNodes}
+          className="px-3 py-1.5 text-xs font-mono border border-[var(--color-border-sub)] rounded bg-[var(--color-background-2)] text-[var(--color-text-sub)] hover:text-white transition-colors">
+          ⊞ Organize
+        </button>
         <button onClick={() => setGroupByFolder(v => !v)}
           className={`px-3 py-1.5 text-xs font-mono border rounded transition-colors ${groupByFolder ? 'bg-[rgba(167,139,250,0.12)] border-[rgba(167,139,250,0.5)] text-[rgba(167,139,250,1)]' : 'bg-[var(--color-background-2)] border-[var(--color-border-sub)] text-[var(--color-text-sub)] hover:text-white'}`}>
           {groupByFolder ? 'Grouped' : 'Group Folders'}
@@ -260,10 +295,15 @@ function CanvasInner({ initialNodes, initialEdges }: GraphProps) {
       </div>
 
       <ReactFlow
-        nodes={graphNodes} edges={graphEdges}
+        nodes={rfNodes}
+        edges={rfEdges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => setSelectedId(prev => prev === node.id ? null : node.id)}
         onPaneClick={() => { setSelectedId(null); setHoveredId(null); }}
-        fitView className="react-flow-dark"
+        fitView
+        nodesDraggable
+        className="react-flow-dark"
       >
         <Background color="var(--color-border-sub)" gap={20} size={1} />
         <Controls style={{ backgroundColor: 'var(--color-background-2)', border: '1px solid var(--color-border-main)', fill: 'var(--color-text-main)' }} />
