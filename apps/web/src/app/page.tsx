@@ -1,9 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function Home() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [joined, setJoined] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -34,13 +36,21 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setIsLoggedIn(!!data.session)
+      if (data.session) {
+        setIsLoggedIn(true)
+        router.replace('/dashboard')
+      }
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session)
+      if (session) {
+        setIsLoggedIn(true)
+        router.replace('/dashboard')
+      } else {
+        setIsLoggedIn(false)
+      }
     })
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   return (
     <div className="flex flex-col min-h-screen">
