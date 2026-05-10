@@ -74,9 +74,20 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
                 capture_output=True, text=True, check=True
             )
         else:
-            # JS/TS routing — parser is at /app/packages/parser/src/index.ts in container
-            # current_dir is /app/tasks, so go up to /app then into packages/parser
-            parser_path = os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts"))
+            # JS/TS routing — try multiple possible parser locations
+            # current_dir is .../tasks, parser could be at different paths depending on deployment
+            candidates = [
+                os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts")),          # Docker: /app/packages/parser
+                os.path.normpath(os.path.join(current_dir, "..", "..", "..", "packages", "parser", "src", "index.ts")), # Render native: /opt/render/project/src/packages/parser
+                os.path.normpath(os.path.join(current_dir, "..", "..", "packages", "parser", "src", "index.ts")),      # Other layouts
+            ]
+            parser_path = None
+            for c in candidates:
+                if os.path.exists(c):
+                    parser_path = c
+                    break
+            if not parser_path:
+                raise FileNotFoundError(f"TypeScript parser not found. Tried: {candidates}")
             logger.info(f"Running bun parser for {repo_path} using {parser_path}")
             result = subprocess.run(
                 ["bun", "run", parser_path, repo_path],

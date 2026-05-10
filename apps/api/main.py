@@ -52,9 +52,14 @@ async def debug():
 
     # 4. Check parser file exists
     tasks_dir = os.path.dirname(os.path.abspath(__file__))
-    parser_path = os.path.normpath(os.path.join(tasks_dir, "tasks", "..", "packages", "parser", "src", "index.ts"))
+    ts_candidates = [
+        os.path.normpath(os.path.join(tasks_dir, "tasks", "..", "packages", "parser", "src", "index.ts")),
+        os.path.normpath(os.path.join(tasks_dir, "tasks", "..", "..", "..", "packages", "parser", "src", "index.ts")),
+        os.path.normpath(os.path.join(tasks_dir, "tasks", "..", "..", "packages", "parser", "src", "index.ts")),
+    ]
+    found_ts = next((p for p in ts_candidates if os.path.exists(p)), None)
     py_parser_path = os.path.normpath(os.path.join(tasks_dir, "tasks", "python_parser.py"))
-    checks["ts_parser_exists"] = {"ok": os.path.exists(parser_path), "path": parser_path}
+    checks["ts_parser_exists"] = {"ok": found_ts is not None, "found_at": found_ts, "tried": ts_candidates}
     checks["py_parser_exists"] = {"ok": os.path.exists(py_parser_path), "path": py_parser_path}
 
     # 5. Check DB connection + service key
