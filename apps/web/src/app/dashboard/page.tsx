@@ -40,26 +40,44 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true
 
-    async function loadInitialData() {
-      const { data } = await supabase.auth.getSession()
-
+    async function loadInitialData(session: any) {
       if (!active) return
 
-      if (data.session) {
+      if (session) {
         const { data: userData } = await supabase.auth.getUser()
         if (userData?.user?.identities) {
            setHasGithub(userData.user.identities.some(id => id.provider === 'github'))
         }
         await loadRepos()
       } else {
-        router.replace('/login?redirectTo=/dashboard')
+        // Prevent redirect if OAuth hash is present in URL
+        if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
+          router.replace('/login?redirectTo=/dashboard')
+        }
       }
     }
 
-    loadInitialData()
+    // Initial check
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        loadInitialData(data.session)
+      } else if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
+        router.replace('/login?redirectTo=/dashboard')
+      }
+    })
+
+    // Listen to changes (handles the OAuth redirect parsing)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        loadInitialData(session)
+      } else if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
+        router.replace('/login?redirectTo=/dashboard')
+      }
+    })
 
     return () => {
       active = false
+      subscription.unsubscribe()
     }
   }, [router])
 

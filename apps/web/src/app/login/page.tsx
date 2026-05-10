@@ -26,10 +26,20 @@ function LoginPageInner() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         router.replace(redirectTo)
-      } else {
+      } else if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
         setCheckingAuth(false)
       }
     })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        router.replace(redirectTo)
+      } else if (typeof window !== 'undefined' && !window.location.hash.includes('access_token')) {
+        setCheckingAuth(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [redirectTo, router])
 
   const handleGitHubLogin = async () => {
