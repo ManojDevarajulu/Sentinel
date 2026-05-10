@@ -1,8 +1,5 @@
-import subprocess
 import json
 import os
-from pathlib import Path
-from celery import shared_task
 from db import get_db
 import logging
 
@@ -45,7 +42,7 @@ def _display_name(node: dict, file_path: str) -> str:
 
 
 def _do_scan(job_id: str, repo_id: str, repo_path: str):
-    """Core scan logic — shared by both sync and Celery task versions."""
+    """Core scan logic — uses the universal Python parser (no bun/node needed)."""
     db = get_db()
 
     try:
@@ -56,63 +53,11 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
 
         db.table("scan_jobs").update({"status": "running"}).eq("id", job_id).execute()
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-
-        py_files = list(Path(repo_path).rglob("*.py"))
-        ts_files = (
-            list(Path(repo_path).rglob("*.ts"))
-            + list(Path(repo_path).rglob("*.tsx"))
-            + list(Path(repo_path).rglob("*.js"))
-            + list(Path(repo_path).rglob("*.jsx"))
-        )
-
-        if len(py_files) > len(ts_files):
-            parser_path = os.path.normpath(os.path.join(current_dir, "python_parser.py"))
-            logger.info(f"Running python parser for {repo_path}")
-            result = subprocess.run(
-                ["python", parser_path, repo_path],
-                capture_output=True, text=True, check=True
-            )
-        else:
-            # JS/TS routing — try multiple possible parser locations
-            candidates = [
-                os.path.normpath(os.path.join(current_dir, "..", "packages", "parser", "src", "index.ts")),
-                os.path.normpath(os.path.join(current_dir, "..", "..", "..", "packages", "parser", "src", "index.ts")),
-                os.path.normpath(os.path.join(current_dir, "..", "..", "packages", "parser", "src", "index.ts")),
-            ]
-            parser_path = None
-            for c in candidates:
-                if os.path.exists(c):
-                    parser_path = c
-                    break
-            if not parser_path:
-                raise FileNotFoundError(f"TypeScript parser not found. Tried: {candidates}")
-
-            # Auto-install parser dependencies if not present
-            parser_dir = os.path.dirname(os.path.dirname(parser_path))  # go up from src/index.ts to parser/
-            node_modules = os.path.join(parser_dir, "node_modules")
-            if not os.path.exists(node_modules):
-                logger.info(f"Installing parser dependencies in {parser_dir}...")
-                install_result = subprocess.run(
-                    ["bun", "install"], cwd=parser_dir,
-                    capture_output=True, text=True, timeout=120
-                )
-                if install_result.returncode != 0:
-                    logger.error(f"bun install failed: {install_result.stderr}")
-                    raise RuntimeError(f"Failed to install parser deps: {install_result.stderr}")
-                logger.info("Parser dependencies installed successfully")
-
-            logger.info(f"Running bun parser for {repo_path} using {parser_path}")
-            result = subprocess.run(
-                ["bun", "run", parser_path, repo_path],
-                capture_output=True, text=True
-            )
-            if result.returncode != 0:
-                logger.error(f"Bun parser stderr: {result.stderr}")
-                logger.error(f"Bun parser stdout: {result.stdout}")
-                raise RuntimeError(f"Parser failed (exit {result.returncode}): {result.stderr[:500]}")
-
-        graph_data = json.loads(result.stdout)
+        # Use the universal parser — pure Python, handles all file types
+        from tasks.universal_parser import build_graph
+        logger.info(f"Running universal parser for {repo_path}")
+        graph_data = build_graph(repo_path)
+        logger.info(f"Parser returned {len(graph_data.get('nodes', []))} nodes, {len(graph_data.get('edges', []))} edges")
 
         nodes_to_insert = []
         for node in graph_data.get("nodes", []):
@@ -131,7 +76,11 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
             })
 
         if nodes_to_insert:
-            db.table("graph_nodes").upsert(nodes_to_insert, on_conflict="repo_id,file_path").execute()
+            # Insert in batches of 50 to avoid request size limits
+            for i in range(0, len(nodes_to_insert), 50):
+                batch = nodes_to_insert[i:i+50]
+                db.table("graph_nodes").upsert(batch, on_conflict="repo_id,file_path").execute()
+            logger.info(f"Inserted {len(nodes_to_insert)} graph nodes")
 
         db_nodes = db.table("graph_nodes").select("id, file_path").eq("repo_id", repo_id).execute()
         path_to_uuid = {n["file_path"]: n["id"] for n in db_nodes.data}
@@ -156,18 +105,21 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
                 })
 
         if edges_to_insert:
-            db.table("graph_edges").upsert(edges_to_insert, on_conflict="source_node_id,target_node_id").execute()
+            for i in range(0, len(edges_to_insert), 50):
+                batch = edges_to_insert[i:i+50]
+                db.table("graph_edges").upsert(batch, on_conflict="source_node_id,target_node_id").execute()
+            logger.info(f"Inserted {len(edges_to_insert)} graph edges")
 
         db.table("scan_jobs").update({"status": "done"}).eq("id", job_id).execute()
         logger.info(f"Scan completed: {len(nodes_to_insert)} nodes, {len(edges_to_insert)} edges")
         return {"status": "success", "nodes": len(nodes_to_insert), "edges": len(edges_to_insert)}
 
     except Exception as e:
-        logger.error(f"Scan job failed: {str(e)}")
+        logger.error(f"Scan job failed: {str(e)}", exc_info=True)
         try:
             db.table("scan_jobs").update({
                 "status": "failed",
-                "error_message": str(e)
+                "error_message": str(e)[:500]
             }).eq("id", job_id).execute()
         except:
             pass
@@ -176,10 +128,4 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
 
 def run_repo_scan_sync(job_id: str, repo_id: str, repo_path: str):
     """Synchronous entry point — used by FastAPI BackgroundTasks (no Redis/Celery needed)."""
-    _do_scan(job_id, repo_id, repo_path)
-
-
-@shared_task(bind=True)
-def run_repo_scan(self, job_id: str, repo_id: str, repo_path: str):
-    """Celery task entry point — used when Redis broker is available."""
     _do_scan(job_id, repo_id, repo_path)
