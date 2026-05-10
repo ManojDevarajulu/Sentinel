@@ -102,20 +102,25 @@ export default function DashboardPage() {
       .finally(() => setGhLoading(false))
   }, [tab, ghToken, ghRepos.length])
 
-  const reAuthorizeGitHub = async () => {
-    // Use linkIdentity so we keep the existing user session (no new user created).
-    // This also requests repo scope to get a provider_token for listing repos.
-    const { error } = await supabase.auth.linkIdentity({
-      provider: 'github',
-      options: { redirectTo: window.location.href, scopes: 'repo read:user' }
-    })
-    if (error) {
-      // Fallback: if already linked, do a fresh OAuth to get a new provider_token
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: window.location.href, scopes: 'repo read:user' }
-      })
+  // Clear Supabase error params from URL on load (e.g. identity_already_exists)
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('error') || url.hash.includes('error=')) {
+      url.searchParams.delete('error')
+      url.searchParams.delete('error_code')
+      url.searchParams.delete('error_description')
+      // Also clear hash errors
+      const cleanUrl = url.origin + url.pathname
+      window.history.replaceState({}, '', cleanUrl)
     }
+  }, [])
+
+  const reAuthorizeGitHub = async () => {
+    // Identity is already linked — just do a fresh OAuth sign-in to get a new provider_token
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: window.location.origin + '/dashboard', scopes: 'repo read:user' }
+    })
   }
 
   const handleImport = async (ghRepo: GHRepo) => {
