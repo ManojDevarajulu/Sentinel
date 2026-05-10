@@ -76,10 +76,24 @@ def _do_scan(job_id: str, repo_id: str, repo_path: str):
             })
 
         if nodes_to_insert:
-            # Insert in batches of 50 to avoid request size limits
+            # Try with all columns first; if extended columns don't exist, fall back to core only
             for i in range(0, len(nodes_to_insert), 50):
                 batch = nodes_to_insert[i:i+50]
-                db.table("graph_nodes").upsert(batch, on_conflict="repo_id,file_path").execute()
+                try:
+                    db.table("graph_nodes").upsert(batch, on_conflict="repo_id,file_path").execute()
+                except Exception as col_err:
+                    if "PGRST204" in str(col_err) or "column" in str(col_err).lower():
+                        logger.warning(f"Extended columns missing, falling back to core columns: {col_err}")
+                        core_batch = [{
+                            "repo_id": n["repo_id"],
+                            "file_path": n["file_path"],
+                            "node_type": n["node_type"],
+                            "exports": n["exports"],
+                            "imports": n["imports"],
+                        } for n in batch]
+                        db.table("graph_nodes").upsert(core_batch, on_conflict="repo_id,file_path").execute()
+                    else:
+                        raise
             logger.info(f"Inserted {len(nodes_to_insert)} graph nodes")
 
         db_nodes = db.table("graph_nodes").select("id, file_path").eq("repo_id", repo_id).execute()
