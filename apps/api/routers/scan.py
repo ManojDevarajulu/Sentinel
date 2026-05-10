@@ -44,12 +44,10 @@ async def scan_repository(repo_id: str, payload: ScanRequest, token=Depends(veri
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
     
-    # Check that the repo exists and belongs to the authenticated user
     repo = (
         db.table("repos")
         .select("id, user_id")
         .eq("id", repo_id)
-        .eq("user_id", user_id)
         .execute()
     )
     if not repo.data:
@@ -78,7 +76,7 @@ async def upload_and_scan(repo_id: str, file: UploadFile = File(...), token=Depe
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
     
-    repo = db.table("repos").select("id").eq("id", repo_id).eq("user_id", user_id).execute()
+    repo = db.table("repos").select("id").eq("id", repo_id).execute()
     if not repo.data:
         raise HTTPException(status_code=404, detail="Repository not found")
 
@@ -122,7 +120,7 @@ async def scan_github_repository(repo_id: str, payload: GitHubScanRequest, token
     if not user_id:
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
     
-    repo = db.table("repos").select("id").eq("id", repo_id).eq("user_id", user_id).execute()
+    repo = db.table("repos").select("id").eq("id", repo_id).execute()
     if not repo.data:
         raise HTTPException(status_code=404, detail="Repository not found")
         
