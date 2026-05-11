@@ -24,6 +24,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Sentinel | Blast Radius Analysis',
   description: 'AI code safety layer. Map your codebase and compute blast radius on every PR.',
+  icons: {
+    icon: '/sentinel_favicon.svg',
+  },
 }
 
 export default function RootLayout({

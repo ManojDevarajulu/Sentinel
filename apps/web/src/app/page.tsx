@@ -327,7 +327,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="border-t border-[var(--color-border-main)] py-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[var(--color-accent)]" />
+          <img src="/sentinel_logo_dark.svg" alt="Sentinel Logo" className="w-4 h-4" />
           <span className="font-display font-bold tracking-wider text-sm uppercase">Sentinel</span>
         </div>
         <p className="font-mono text-[10px] text-[var(--color-text-muted)]">© 2026 Sentinel. Licensed under AGPL v3.</p>

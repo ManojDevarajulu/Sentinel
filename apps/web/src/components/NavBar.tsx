@@ -36,7 +36,7 @@ export default function NavBar() {
     <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-[rgba(10,10,11,0.92)] border-b border-[var(--color-border-main)] backdrop-blur-md">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3 group">
-        <div className="w-3 h-3 rounded-full bg-[var(--color-accent)] animate-pulse group-hover:scale-125 transition-transform" />
+        <img src="/sentinel_logo_dark.svg" alt="Sentinel Logo" className="w-6 h-6 group-hover:scale-110 transition-transform" />
         <span className="font-display font-bold tracking-wider text-sm uppercase hover:text-[var(--color-accent)] transition-colors">Sentinel</span>
       </Link>
 
