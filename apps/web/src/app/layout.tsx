@@ -41,8 +41,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/image.png',
-        width: 1900,
-        height: 902,
+        width: 1200,
+        height: 630,
         alt: 'Sentinel - AI code safety layer',
       },
     ],
