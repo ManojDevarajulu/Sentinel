@@ -3,8 +3,8 @@ import requests
 import time
 from supabase import create_client
 
-supabase_url = os.getenv("SUPABASE_URL", "https://ycgoqbizjjbnmnnsdxny.supabase.co")
-supabase_key = os.getenv("SUPABASE_ANON_KEY", "sb_publishable_qUq66ICr7NOvD6XJzUJQBg_yFwMb0Tc")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_ANON_KEY")
 supabase = create_client(supabase_url, supabase_key)
 
 email = "testuser_v2@example.com"
