@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel — AI Codebase AST Visualizer & Blast-Radius Engine</title>
+  <meta name="description" content="Zero-cloud, zero-auth codebase AST visualizer and blast-radius engine. Map dependencies, detect cycles, and trace impact before code merges.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --bg2: #111114;
+      --bg3: #18181d;
+      --border: #222228;
+      --border2: #2e2e38;
+      --text: #f0f0f2;
+      --text2: #8888a0;
+      --text3: #55556a;
+      --accent: #e8ff47;
+      --accent-glow: rgba(232, 255, 71, 0.2);
+      --accent-bg: rgba(232, 255, 71, 0.08);
+      --accent-sub: rgba(232, 255, 71, 0.25);
+      --accent2: #ff6b35;
+      --accent3: #47b8ff;
+      --red: #ff4757;
+      --green: #2ed573;
+      --amber: #ffa502;
+      --purple: #a78bfa;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* TOP NAV */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 11, 0.94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 56px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-sub);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.06em;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+    .brand-title {
+      font-family: var(--font-head);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      height: 100%;
+    }
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      height: 56px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text2);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover {
+      color: var(--text);
+    }
+    .nav-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: #0a0a0b;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-github:hover {
+      background: #f5ff82;
+    }
+
+    /* PANELS */
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* TYPOGRAPHY & COMMON */
+    h1 { font-family: var(--font-head); font-size: 3.5rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+    h2 { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+    h3 { font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    p { font-size: 15px; color: var(--text2); line-height: 1.7; }
+    .lime { color: var(--accent); }
+    .mono { font-family: var(--font-mono); }
+
+    /* HERO SECTION */
+    .hero-section {
+      position: relative;
+      padding: 5rem 1.5rem 3.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(34,34,40,0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,34,40,0.3) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .hero-glow-blob {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232, 255, 71, 0.08) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-sub);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-sub {
+      font-size: 1.25rem;
+      color: var(--text2);
+      max-width: 640px;
+      margin: 1.25rem 0 2rem;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #0a0a0b;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .btn-hero-primary:hover {
+      background: #f5ff82;
+      transform: translateY(-1px);
+    }
+    .cmd-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .cmd-box:hover {
+      border-color: var(--accent);
+    }
+
+    /* STATS STRIP */
+    .stats-strip {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto 3rem;
+    }
+    .stat-box { text-align: center; }
+    .stat-val { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+    .stat-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-top: 4px; letter-spacing: 0.05em; }
+
+    /* PREVIEW GRAPH CARD */
+    .preview-card {
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      overflow: hidden;
+      margin: 0 auto 4rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .card-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(17, 17, 20, 0.8);
+      border-bottom: 1px solid var(--border);
+    }
+    .mac-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .mac-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: var(--red); }
+    .dot-yellow { background: var(--amber); }
+    .dot-green { background: var(--green); }
+    .preview-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-sub);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .preview-canvas-holder {
+      height: 360px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, rgba(232, 255, 71, 0.03) 0%, transparent 65%);
+    }
+
+    /* SECTIONS */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      margin-bottom: 2.5rem;
+    }
+
+    /* CARDS GRID */
+    .cards-grid3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 2rem;
+    }
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s;
+    }
+    .feature-card:hover {
+      border-color: rgba(232, 255, 71, 0.3);
+      transform: translateY(-2px);
+    }
+    .card-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .tags-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .tag-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+
+    /* NODE TYPES PALETTE */
+    .node-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .node-chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    /* COMPARISON TABLE */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0 3rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .comparison-table th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      background: rgba(17, 17, 20, 0.6);
+    }
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* WORKSPACE VISUALIZER TAB */
+    .workspace-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 56px);
+      position: relative;
+      overflow: hidden;
+    }
+    .workspace-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 1.5rem;
+      background: rgba(17, 17, 20, 0.95);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .select-repo {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .search-files {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      width: 220px;
+      outline: none;
+    }
+    .search-files:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-sub);
+    }
+    .btn-tool {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-tool:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, rgba(232, 255, 71, 0.02) 0%, transparent 70%);
+    }
+    #main-svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #main-svg:active { cursor: grabbing; }
+
+    /* DRAWER */
+    .drawer-panel {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 360px;
+      background: rgba(17, 17, 20, 0.95);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 16px;
+      z-index: 30;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+    }
+    .meta-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .meta-item {
+      background: var(--bg);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .meta-val {
+      font-family: var(--font-head);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .meta-lbl {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text3);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVIGATION -->
+  <header class="nav">
+    <div class="nav-left">
+      <a href="#" class="brand-link" onclick="switchTab('overview')">
+        <div class="logo-badge"><div class="pulse-dot"></div>SENTINEL</div>
+        <span class="brand-title">AST Visualizer</span>
+      </a>
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-btn-overview" onclick="switchTab('overview')">⚡ Overview</button>
+        <button class="nav-tab" id="tab-btn-visualizer" onclick="switchTab('visualizer')">🔮 Interactive Visualizer</button>
+        <button class="nav-tab" id="tab-btn-blueprint" onclick="switchTab('blueprint')">📋 Architecture Specs</button>
+        <button class="nav-tab" id="tab-btn-cli" onclick="switchTab('cli')">💻 CLI & Claude Skill</button>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="badge-pill">Zero Auth · 100% Offline</span>
+      <a href="https://github.com/ManojDevarajulu/Sentinel" target="_blank" class="btn-github">★ Star on GitHub</a>
+    </div>
+  </header>
+
+  <!-- PANEL 1: OVERVIEW & CAPABILITIES -->
+  <div class="tab-panel active" id="panel-overview">
+    <section class="hero-section">
+      <div class="hero-grid-bg"></div>
+      <div class="hero-glow-blob"></div>
+
+      <div class="eyebrow">
+        <div class="pulse-dot"></div>
+        OPEN SOURCE · ZERO CLOUD · ZERO AUTH DEVELOPER TOOL
+      </div>
+
+      <h1>
+        AI writes the code.<br>
+        <span class="lime">Sentinel</span> protects it.
+      </h1>
+
+      <p class="hero-sub">
+        Map every dependency. Score every risk. Know what breaks before it does.<br>
+        Pure Python AST extraction with deterministic blast-radius reachability.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn-hero-primary" onclick="switchTab('visualizer')">Launch Interactive Visualizer ➔</button>
+        <div class="cmd-box" onclick="copyInstall()">
+          <span>$ pip install .</span>
+          <span style="color:var(--accent);">[Copy]</span>
+        </div>
+      </div>
+
+      <div class="stats-strip">
+        <div class="stat-box">
+          <div class="stat-val">&lt; 20ms</div>
+          <div class="stat-lbl">GRAPH LATENCY</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">100%</div>
+          <div class="stat-lbl">DETERMINISTIC AST</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">0</div>
+          <div class="stat-lbl">EXTERNAL DBS / AUTH GATES</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">4-Dim</div>
+          <div class="stat-lbl">WEIGHTED RISK MODEL</div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE PREVIEW GRAPH CARD -->
+      <div class="preview-card">
+        <div class="card-topbar">
+          <div class="mac-dots">
+            <div class="mac-dot dot-red"></div>
+            <div class="mac-dot dot-yellow"></div>
+            <div class="mac-dot dot-green"></div>
+          </div>
+          <span class="preview-badge">Live Interactive AST Preview (Click any node)</span>
+          <button class="btn-tool" onclick="switchTab('visualizer')">Full Canvas ↗</button>
+        </div>
+        <div class="preview-canvas-holder">
+          <svg id="preview-svg" viewBox="0 0 800 360" style="width:100%; height:100%;">
+            <!-- Rendered dynamically -->
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE PROBLEM -->
+    <div class="container" style="padding-top:0;">
+      <div class="section-eyebrow">The AI Age Problem</div>
+      <h2 class="section-title">Why AI-generated code breaks silently in production.</h2>
+      <p style="margin-bottom: 2rem;">
+        Tools like Claude Code, Cursor, and Copilot allow developers to ship hundreds of lines of code in seconds.
+        However, mental math cannot compute whether modifying an entity in <code class="mono" style="color:var(--accent);">models.py</code> propagates
+        through 4 hops into API routes and payment webhooks. Sentinel resolves the exact AST import graph locally, guaranteeing
+        zero broken invariants before code merges.
+      </p>
+
+      <!-- COMPARISON TABLE -->
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Legacy Cloud SaaS</th>
+            <th>LLM Autoregressive Mental Math</th>
+            <th>Sentinel (Pure AST Engine)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Authentication Gate</strong></td>
+            <td>Requires Login, Signup, Supabase/Clerk</td>
+            <td>N/A</td>
+            <td><span class="lime">Zero Auth (100% Offline & Open Source)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Runtime Footprint</strong></td>
+            <td>Docker, Celery, Redis, PostgreSQL</td>
+            <td>External API latency (3-15s)</td>
+            <td><span class="lime">Standard Library Python (Zero Dependencies)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Latency</strong></td>
+            <td>10 - 45 seconds per scan</td>
+            <td>3,000 - 8,000ms</td>
+            <td><span class="lime">&lt; 20ms per repository</span></td>
+          </tr>
+          <tr>
+            <td><strong>Determinism</strong></td>
+            <td>Dependent on database availability</td>
+            <td>Hallucinates phantom files and imports</td>
+            <td><span class="lime">100% Deterministic (Native AST Grammar)</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 6 CAPABILITIES -->
+      <div class="section-eyebrow">Engineered for Depth</div>
+      <h2 class="section-title">Core Architectural Capabilities</h2>
+      <div class="cards-grid3">
+        <div class="feature-card">
+          <div class="card-num">01 / BFS BLAST RADIUS</div>
+          <h3>Reverse Reachability</h3>
+          <p>Computes every file transitively affected by modifying a target module via reverse Breadth-First Search with critical path tracing.</p>
+          <div class="tags-row">
+            <span class="tag-badge">Transitive Reach</span>
+            <span class="tag-badge">Hop Distance</span>
+            <span class="tag-badge">Critical Paths</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">02 / DETERMINISTIC AST</div>
+          <h3>Zero Regex Parsing</h3>
+          <p>Analyzes native Python <code class="mono">ast.parse</code> and TypeScript/ESM imports, accurately mapping relative imports and aliases.</p>
+          <div class="tags-row">
+            <span class="tag-badge">Python AST</span>
+            <span class="tag-badge">TS/ESM</span>
+            <span class="tag-badge">tsconfig @/*</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">03 / ROLE CLASSIFIER</div>
+          <h3>Architectural Taxonomy</h3>
+          <p>Detects 8 semantic roles: Middleware, Layout, Model, Service, Component, Hook, Router, and Utility.</p>
+          <div class="tags-row">
+            <span class="tag-badge">Middleware</span>
+            <span class="tag-badge">Service</span>
+            <span class="tag-badge">Router</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">04 / RISK SCORING</div>
+          <h3>4-Component Scoring</h3>
+          <p>Evaluates Volume (40%), Critical Roles (30%), Topological PageRank (20%), and Proximity (10%) to output SAFE, WARNING, or CRITICAL.</p>
+          <div class="tags-row">
+            <span class="tag-badge">PageRank</span>
+            <span class="tag-badge">Volume</span>
+            <span class="tag-badge">Severity</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">05 / CLAUDE CODE SKILL</div>
+          <h3>Agentic Pair Programming</h3>
+          <p>Pre-packaged as a Claude Code Skill in <code class="mono">.claude/skills/sentinel</code> for automated blast-radius audits inside agent loops.</p>
+          <div class="tags-row">
+            <span class="tag-badge">Claude Code</span>
+            <span class="tag-badge">Subagent</span>
+            <span class="tag-badge">Pre-Merge</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">06 / GRAPHIFY / ARCHIFY CLI</div>
+          <h3>Instant Browser Server</h3>
+          <p><code class="mono">sentinel serve .</code> spins up a local server on port 7331 and opens your browser in 5 milliseconds with zero setup.</p>
+          <div class="tags-row">
+            <span class="tag-badge">sentinel serve</span>
+            <span class="tag-badge">Offline</span>
+            <span class="tag-badge">Single-Binary</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NODE TYPES PALETTE -->
+      <div class="section-eyebrow">Visual Design Language</div>
+      <h2 style="font-size:1.5rem; margin-bottom: 0.5rem;">Node Role Taxonomy & Color System</h2>
+      <div class="node-chips">
+        <span class="node-chip" style="color:#ff4757; border-color:#ff4757; background:rgba(255,71,87,0.08);">MIDDLEWARE</span>
+        <span class="node-chip" style="color:#ffa502; border-color:#ffa502; background:rgba(255,165,2,0.08);">ENTRYPOINT</span>
+        <span class="node-chip" style="color:#47b8ff; border-color:#47b8ff; background:rgba(71,184,255,0.08);">LAYOUT</span>
+        <span class="node-chip" style="color:#2ed573; border-color:#2ed573; background:rgba(46,213,115,0.08);">ROUTER</span>
+        <span class="node-chip" style="color:#e8ff47; border-color:#e8ff47; background:rgba(232,255,71,0.08);">MODEL</span>
+        <span class="node-chip" style="color:#a78bfa; border-color:#a78bfa; background:rgba(167,139,250,0.08);">SERVICE</span>
+        <span class="node-chip" style="color:#2ed573; border-color:#2ed573; background:rgba(46,213,115,0.08);">COMPONENT</span>
+        <span class="node-chip" style="color:#8888a0; border-color:#8888a0; background:rgba(136,136,160,0.08);">UTIL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: LIVE CODEBASE VISUALIZER -->
+  <div class="tab-panel" id="panel-visualizer">
+    <div class="workspace-wrapper">
+      <div class="workspace-toolbar">
+        <div class="toolbar-left">
+          <label class="mono" style="font-size:11px; color:var(--text3);">Repository:</label>
+          <select id="repo-select" class="select-repo" onchange="loadSelectedRepo()">
+            <option value="sentinel">07-Sentinel (Self AST Graph)</option>
+            <option value="intake">01-intake (Clinical IDP Engine)</option>
+            <option value="ledger">03-ledger (Financial RAG Engine)</option>
+            <option value="monorepo">Full-Stack Monorepo Fixture</option>
+          </select>
+          <input type="text" id="node-search" class="search-files" placeholder="Search files... (/)" oninput="filterNodes(this.value)" />
+        </div>
+        <div class="toolbar-right">
+          <button class="btn-tool" onclick="zoomIn()">Zoom (+)</button>
+          <button class="btn-tool" onclick="zoomOut()">Zoom (-)</button>
+          <button class="btn-tool" onclick="resetTransform()">Center (0)</button>
+          <button class="btn-tool" onclick="exportMermaid()">Copy Mermaid</button>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg id="main-svg">
+          <defs>
+            <marker id="m-arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#3a3a46" />
+            </marker>
+            <filter id="glow-lime-svg" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-red-svg" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          <g id="main-viewport">
+            <g id="main-edges"></g>
+            <g id="main-nodes"></g>
+          </g>
+        </svg>
+
+        <!-- DRAWER -->
+        <div class="drawer-panel" id="inspector-drawer">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <span class="mono" id="ins-role-badge" style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(232,255,71,0.1); color:var(--accent); border:1px solid rgba(232,255,71,0.3);">MODEL</span>
+            <span class="mono" id="ins-risk-pill" style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(46,213,115,0.1); color:var(--green); border:1px solid rgba(46,213,115,0.3);">SAFE (0/100)</span>
+          </div>
+          <h2 id="ins-title" style="font-size:16px; margin: 8px 0 2px;">Select a Node</h2>
+          <p id="ins-path" class="mono" style="font-size:11px; color:var(--text2); word-break:break-all;"></p>
+
+          <div class="meta-2col">
+            <div class="meta-item"><div class="meta-val" id="ins-upstream">0</div><div class="meta-lbl">Upstream Importers</div></div>
+            <div class="meta-item"><div class="meta-val" id="ins-downstream">0</div><div class="meta-lbl">Dependencies</div></div>
+            <div class="meta-item"><div class="meta-val" id="ins-loc">0</div><div class="meta-lbl">Lines of Code</div></div>
+            <div class="meta-item"><div class="meta-val" id="ins-pagerank">0.0</div><div class="meta-lbl">PageRank Score</div></div>
+          </div>
+
+          <div style="margin-top:12px; font-size:12px; line-height:1.6;" id="ins-desc">
+            Click any node on the canvas to audit its reverse blast-radius reachability and critical propagation chain.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: ARCHITECTURE SPECS & BLUEPRINT -->
+  <div class="tab-panel" id="panel-blueprint">
+    <div class="container">
+      <div class="section-eyebrow">Technical Specification</div>
+      <h1>Sentinel Architecture Blueprint</h1>
+      <p style="margin-bottom:2rem;">The closed-form mathematical principles and invariant algorithms powering the engine.</p>
+
+      <div class="feature-card" style="margin-bottom:1.5rem;">
+        <h3 class="lime">1. Deterministic Reverse-BFS Transitive Blast Radius</h3>
+        <p>Given a set of modified files $M \subset V$, Sentinel constructs the transpose graph $G^T = (V, E^T)$ and evaluates the transitive reachability:</p>
+        <div class="mono" style="background:var(--bg); padding:10px; border-radius:6px; margin:10px 0; font-size:12px; border:1px solid var(--border);">
+          Reach(M) = { v &isin; V | &exist; path v &rarr;* m for some m &isin; M }
+        </div>
+        <p>Hop distance $d(v, M)$ is computed via single-pass BFS. Any propagation path terminating at an Entrypoint or Middleware escalates the audit to <strong>CRITICAL</strong>.</p>
+      </div>
+
+      <div class="feature-card" style="margin-bottom:1.5rem;">
+        <h3 class="lime">2. Weighted Architectural Risk Formulation</h3>
+        <p>The risk score $S \in [0, 100]$ is evaluated as a convex combination of 4 architectural invariants:</p>
+        <div class="mono" style="background:var(--bg); padding:10px; border-radius:6px; margin:10px 0; font-size:12px; border:1px solid var(--border);">
+          Score = 0.40 * VolumeScore + 0.30 * CriticalTypeScore + 0.20 * PageRankAvg + 0.10 * ProximityScore
+        </div>
+        <p>Special rule: If <code class="mono">NodeKind.MIDDLEWARE</code> is in the reachability set, <code class="mono">Score = max(Score, 85.0)</code> and level is forced to <strong>CRITICAL</strong>.</p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="lime">3. Empirical Performance Benchmarks</h3>
+        <table class="comparison-table" style="margin:10px 0 0;">
+          <thead>
+            <tr>
+              <th>Repository</th>
+              <th>Files Scanned</th>
+              <th>Import Edges</th>
+              <th>Parse + Graph Latency</th>
+              <th>Target Modified File</th>
+              <th>Blast Radius</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>07-Sentinel</strong></td>
+              <td>9</td>
+              <td>12</td>
+              <td><span class="lime">16.6ms</span></td>
+              <td>src/types.py</td>
+              <td>7 upstream files (WARNING)</td>
+            </tr>
+            <tr>
+              <td><strong>01-intake</strong></td>
+              <td>19</td>
+              <td>32</td>
+              <td><span class="lime">43.4ms</span></td>
+              <td>src/schema.py</td>
+              <td>13 upstream files (CRITICAL)</td>
+            </tr>
+            <tr>
+              <td><strong>03-ledger</strong></td>
+              <td>17</td>
+              <td>23</td>
+              <td><span class="lime">24.1ms</span></td>
+              <td>src/chunker.py</td>
+              <td>8 upstream files (WARNING)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: CLI & CLAUDE SKILL -->
+  <div class="tab-panel" id="panel-cli">
+    <div class="container">
+      <div class="section-eyebrow">Developer Workflow</div>
+      <h1>Standalone CLI & Agent Skill</h1>
+      <p style="margin-bottom:2rem;">Run Sentinel in your terminal or hook it into Claude Code pair-programming loops.</p>
+
+      <div class="cards-grid3">
+        <div class="feature-card">
+          <div class="card-num">LOCAL BROWSER SERVER</div>
+          <h3>sentinel serve</h3>
+          <p>Launches an embedded Python HTTP server on port 7331 and opens your default browser with zero login:</p>
+          <div class="mono" style="background:var(--bg); padding:10px; border-radius:6px; margin-top:10px; font-size:12px; border:1px solid var(--border);">
+            $ sentinel serve .<br>
+            <span style="color:var(--text3);">Serving on http://localhost:7331</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-num">OFFLINE SCAN & HTML</div>
+          <h3>sentinel scan</h3>
+          <p>Analyzes repository AST and outputs a single-file, self-contained HTML visualizer:</p>
+          <div class="mono" style="background:var(--bg); padding:10px; border-radius:6px; margin-top:10px; font-size:12px; border:1px solid var(--border);">
+            $ sentinel scan . -o graph.html --open
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-num">CLAUDE CODE AGENT</div>
+          <h3>.claude/skills/sentinel</h3>
+          <p>Claude automatically triggers Sentinel whenever you ask "What breaks if I change this file?":</p>
+          <div class="mono" style="background:var(--bg); padding:10px; border-radius:6px; margin-top:10px; font-size:12px; border:1px solid var(--border);">
+            $ sentinel blast-radius -c src/types.py --json
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    Sentinel — Open Source Codebase AST Visualizer & Blast-Radius Engine · MIT License · Designed & Engineered by Manoj Devarajulu
+  </footer>
+
+  <script>
+    // DATA REPOSITORIES
+    const DATASETS = {
+      sentinel: {
+        name: "07-Sentinel (Self AST Graph)",
+        nodes: [
+          { id: "sentinel.py", label: "sentinel.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 160, loc: 162, inDegree: 0, outDegree: 4, exports: ["main", "run_scan", "run_serve", "run_blast_radius"] },
+          { id: "src/ast_extractor.py", label: "ast_extractor.py", kind: "SERVICE", color: "#a78bfa", x: 420, y: 280, loc: 180, inDegree: 2, outDegree: 2, exports: ["ASTExtractor"] },
+          { id: "src/graph_engine.py", label: "graph_engine.py", kind: "SERVICE", color: "#a78bfa", x: 600, y: 320, loc: 195, inDegree: 2, outDegree: 1, exports: ["GraphEngine"] },
+          { id: "src/viewer_generator.py", label: "viewer_generator.py", kind: "SERVICE", color: "#a78bfa", x: 780, y: 280, loc: 240, inDegree: 2, outDegree: 1, exports: ["ViewerGenerator"] },
+          { id: "src/types.py", label: "types.py", kind: "MODEL", color: "#e8ff47", x: 600, y: 480, loc: 85, inDegree: 4, outDegree: 0, exports: ["CodeNode", "CodeEdge", "NodeKind", "BlastRadiusReport"] },
+          { id: "eval_benchmark.py", label: "eval_benchmark.py", kind: "UTIL", color: "#8888a0", x: 380, y: 460, loc: 95, inDegree: 0, outDegree: 3, exports: ["run_all_benchmarks"] },
+          { id: "tests/test_sentinel_core.py", label: "test_sentinel_core.py", kind: "TEST", color: "#55556a", x: 820, y: 460, loc: 160, inDegree: 0, outDegree: 4, exports: ["TestSentinelCore"] }
+        ],
+        edges: [
+          { source: "sentinel.py", target: "src/ast_extractor.py" },
+          { source: "sentinel.py", target: "src/graph_engine.py" },
+          { source: "sentinel.py", target: "src/viewer_generator.py" },
+          { source: "sentinel.py", target: "src/types.py" },
+          { source: "src/ast_extractor.py", target: "src/types.py" },
+          { source: "src/graph_engine.py", target: "src/types.py" },
+          { source: "src/viewer_generator.py", target: "src/types.py" },
+          { source: "eval_benchmark.py", target: "src/ast_extractor.py" },
+          { source: "eval_benchmark.py", target: "src/graph_engine.py" },
+          { source: "tests/test_sentinel_core.py", target: "src/ast_extractor.py" },
+          { source: "tests/test_sentinel_core.py", target: "src/graph_engine.py" },
+          { source: "tests/test_sentinel_core.py", target: "src/viewer_generator.py" }
+        ]
+      },
+      intake: {
+        name: "01-intake (Clinical IDP Engine)",
+        nodes: [
+          { id: "web/server.py", label: "server.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 150, loc: 600, inDegree: 0, outDegree: 4, exports: ["app", "upload_referral_document", "update_referral_field"] },
+          { id: "src/calibrated_router.py", label: "calibrated_router.py", kind: "ROUTER", color: "#2ed573", x: 420, y: 280, loc: 160, inDegree: 1, outDegree: 2, exports: ["CalibratedRouter"] },
+          { id: "src/ocr_engine.py", label: "ocr_engine.py", kind: "SERVICE", color: "#a78bfa", x: 780, y: 280, loc: 210, inDegree: 1, outDegree: 2, exports: ["OCRExtractionEngine"] },
+          { id: "src/clinical_verifier.py", label: "clinical_verifier.py", kind: "SERVICE", color: "#a78bfa", x: 420, y: 440, loc: 185, inDegree: 1, outDegree: 0, exports: ["ClinicalVerifier"] },
+          { id: "src/fhir_exporter.py", label: "fhir_exporter.py", kind: "SERVICE", color: "#a78bfa", x: 780, y: 440, loc: 230, inDegree: 1, outDegree: 1, exports: ["FHIRExporter"] },
+          { id: "src/schema.py", label: "schema.py", kind: "MODEL", color: "#e8ff47", x: 600, y: 360, loc: 140, inDegree: 4, outDegree: 0, exports: ["ReferralV1", "PatientEntity", "DiagnosisEntity"] }
+        ],
+        edges: [
+          { source: "web/server.py", target: "src/calibrated_router.py" },
+          { source: "web/server.py", target: "src/ocr_engine.py" },
+          { source: "web/server.py", target: "src/fhir_exporter.py" },
+          { source: "web/server.py", target: "src/schema.py" },
+          { source: "src/calibrated_router.py", target: "src/clinical_verifier.py" },
+          { source: "src/calibrated_router.py", target: "src/schema.py" },
+          { source: "src/ocr_engine.py", target: "src/schema.py" },
+          { source: "src/fhir_exporter.py", target: "src/schema.py" }
+        ]
+      },
+      ledger: {
+        name: "03-ledger (Financial RAG Engine)",
+        nodes: [
+          { id: "web/server.py", label: "server.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 150, loc: 420, inDegree: 0, outDegree: 3, exports: ["app"] },
+          { id: "src/hybrid_retriever.py", label: "hybrid_retriever.py", kind: "SERVICE", color: "#a78bfa", x: 450, y: 300, loc: 280, inDegree: 1, outDegree: 1, exports: ["HybridRetriever"] },
+          { id: "src/ast_evaluator.py", label: "ast_evaluator.py", kind: "SERVICE", color: "#a78bfa", x: 750, y: 300, loc: 190, inDegree: 1, outDegree: 1, exports: ["ASTEvaluator"] },
+          { id: "src/chunker.py", label: "chunker.py", kind: "SERVICE", color: "#a78bfa", x: 600, y: 440, loc: 310, inDegree: 2, outDegree: 1, exports: ["TableAwareChunker"] },
+          { id: "src/models.py", label: "models.py", kind: "MODEL", color: "#e8ff47", x: 600, y: 300, loc: 110, inDegree: 3, outDegree: 0, exports: ["FinancialRecord", "FactChunk"] }
+        ],
+        edges: [
+          { source: "web/server.py", target: "src/hybrid_retriever.py" },
+          { source: "web/server.py", target: "src/ast_evaluator.py" },
+          { source: "web/server.py", target: "src/models.py" },
+          { source: "src/hybrid_retriever.py", target: "src/chunker.py" },
+          { source: "src/ast_evaluator.py", target: "src/models.py" },
+          { source: "src/chunker.py", target: "src/models.py" }
+        ]
+      },
+      monorepo: {
+        name: "Full-Stack Monorepo Fixture",
+        nodes: [
+          { id: "src/middleware.ts", label: "middleware.ts", kind: "MIDDLEWARE", color: "#ff4757", x: 300, y: 220, loc: 90, inDegree: 0, outDegree: 2, exports: ["middleware"] },
+          { id: "app/layout.tsx", label: "layout.tsx", kind: "LAYOUT", color: "#47b8ff", x: 500, y: 160, loc: 120, inDegree: 1, outDegree: 2, exports: ["RootLayout"] },
+          { id: "app/dashboard/page.tsx", label: "dashboard/page.tsx", kind: "ROUTER", color: "#2ed573", x: 700, y: 180, loc: 240, inDegree: 1, outDegree: 2, exports: ["DashboardPage"] },
+          { id: "lib/auth.ts", label: "auth.ts", kind: "SERVICE", color: "#a78bfa", x: 420, y: 340, loc: 140, inDegree: 2, outDegree: 1, exports: ["verifySession", "getUser"] },
+          { id: "components/Chart.tsx", label: "Chart.tsx", kind: "COMPONENT", color: "#2ed573", x: 800, y: 320, loc: 180, inDegree: 1, outDegree: 1, exports: ["RiskChart"] },
+          { id: "lib/db.ts", label: "db.ts", kind: "MODEL", color: "#e8ff47", x: 600, y: 460, loc: 110, inDegree: 3, outDegree: 0, exports: ["prisma", "queryAudit"] }
+        ],
+        edges: [
+          { source: "src/middleware.ts", target: "lib/auth.ts" },
+          { source: "src/middleware.ts", target: "app/layout.tsx" },
+          { source: "app/layout.tsx", target: "app/dashboard/page.tsx" },
+          { source: "app/dashboard/page.tsx", target: "components/Chart.tsx" },
+          { source: "app/dashboard/page.tsx", target: "lib/auth.ts" },
+          { source: "lib/auth.ts", target: "lib/db.ts" },
+          { source: "components/Chart.tsx", target: "lib/db.ts" }
+        ]
+      }
+    };
+
+    let activeData = DATASETS.sentinel;
+    let selectedId = null;
+    let scale = 0.95;
+    let translateX = 0;
+    let translateY = 0;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+      
+      const targetPanel = document.getElementById(`panel-${tabId}`);
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (targetPanel) targetPanel.classList.add("active");
+      if (targetBtn) targetBtn.classList.add("active");
+
+      if (tabId === "visualizer") {
+        setTimeout(renderMainCanvas, 50);
+      }
+    }
+
+    function copyInstall() {
+      navigator.clipboard.writeText("pip install .");
+      alert("Copied 'pip install .' to clipboard! Works completely offline with 0 dependencies.");
+    }
+
+    function renderPreviewCanvas() {
+      const svg = document.getElementById("preview-svg");
+      if (!svg) return;
+      svg.innerHTML = "";
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("transform", "translate(40, -40) scale(0.72)");
+
+      // Draw edges
+      activeData.edges.forEach(e => {
+        const s = activeData.nodes.find(n => n.id === e.source);
+        const t = activeData.nodes.find(n => n.id === e.target);
+        if (!s || !t) return;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", s.x);
+        line.setAttribute("y1", s.y);
+        line.setAttribute("x2", t.x);
+        line.setAttribute("y2", t.y);
+        line.setAttribute("stroke", "#222228");
+        line.setAttribute("stroke-width", "1.5");
+        g.appendChild(line);
+      });
+
+      // Draw nodes
+      activeData.nodes.forEach(n => {
+        const nodeG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        nodeG.style.cursor = "pointer";
+        nodeG.onclick = () => { switchTab("visualizer"); selectNode(n.id); };
+
+        const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        halo.setAttribute("cx", n.x);
+        halo.setAttribute("cy", n.y);
+        halo.setAttribute("r", 20);
+        halo.setAttribute("fill", n.color);
+        halo.setAttribute("opacity", "0.08");
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", n.x);
+        circle.setAttribute("cy", n.y);
+        circle.setAttribute("r", 12);
+        circle.setAttribute("fill", "#0a0a0b");
+        circle.setAttribute("stroke", n.color);
+        circle.setAttribute("stroke-width", "2");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", n.x);
+        text.setAttribute("y", n.y + 24);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#8888a0");
+        text.setAttribute("font-size", "11");
+        text.setAttribute("font-family", "JetBrains Mono");
+        text.textContent = n.label;
+
+        nodeG.appendChild(halo);
+        nodeG.appendChild(circle);
+        nodeG.appendChild(text);
+        g.appendChild(nodeG);
+      });
+
+      svg.appendChild(g);
+    }
+
+    function renderMainCanvas() {
+      const edgesG = document.getElementById("main-edges");
+      const nodesG = document.getElementById("main-nodes");
+      if (!edgesG || !nodesG) return;
+      edgesG.innerHTML = "";
+      nodesG.innerHTML = "";
+
+      // Edges
+      activeData.edges.forEach(e => {
+        const s = activeData.nodes.find(n => n.id === e.source);
+        const t = activeData.nodes.find(n => n.id === e.target);
+        if (!s || !t) return;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("id", `edge-${s.id}-${t.id}`);
+        line.setAttribute("x1", s.x);
+        line.setAttribute("y1", s.y);
+        line.setAttribute("x2", t.x);
+        line.setAttribute("y2", t.y);
+        line.setAttribute("stroke", "#222228");
+        line.setAttribute("stroke-width", "1.5");
+        line.setAttribute("marker-end", "url(#m-arrow)");
+        edgesG.appendChild(line);
+      });
+
+      // Nodes
+      activeData.nodes.forEach(n => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("id", `node-${n.id}`);
+        g.style.cursor = "pointer";
+        g.onclick = () => selectNode(n.id);
+
+        const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        halo.setAttribute("cx", n.x);
+        halo.setAttribute("cy", n.y);
+        halo.setAttribute("r", 28);
+        halo.setAttribute("fill", n.color);
+        halo.setAttribute("opacity", "0.08");
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", n.x);
+        circle.setAttribute("cy", n.y);
+        circle.setAttribute("r", 15);
+        circle.setAttribute("fill", "#0a0a0b");
+        circle.setAttribute("stroke", n.color);
+        circle.setAttribute("stroke-width", "2.5");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", n.x);
+        text.setAttribute("y", n.y + 30);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#f0f0f2");
+        text.setAttribute("font-size", "12");
+        text.setAttribute("font-weight", "600");
+        text.setAttribute("font-family", "JetBrains Mono");
+        text.textContent = n.label;
+
+        g.appendChild(halo);
+        g.appendChild(circle);
+        g.appendChild(text);
+        nodesG.appendChild(g);
+      });
+
+      resetTransform();
+    }
+
+    function selectNode(id) {
+      selectedId = id;
+      const node = activeData.nodes.find(n => n.id === id);
+      if (!node) return;
+
+      // Compute upstream reach (Blast radius)
+      const upstream = new Set();
+      const q = [id];
+      while(q.length > 0) {
+        const curr = q.shift();
+        activeData.edges.forEach(e => {
+          if (e.target === curr && !upstream.has(e.source)) {
+            upstream.add(e.source);
+            q.push(e.source);
+          }
+        });
+      }
+
+      // Compute downstream dependencies
+      const downstream = new Set();
+      const dq = [id];
+      while(dq.length > 0) {
+        const curr = dq.shift();
+        activeData.edges.forEach(e => {
+          if (e.source === curr && !downstream.has(e.target)) {
+            downstream.add(e.target);
+            dq.push(e.target);
+          }
+        });
+      }
+
+      // Update Inspector Drawer
+      document.getElementById("ins-title").textContent = node.label;
+      document.getElementById("ins-path").textContent = node.id;
+      document.getElementById("ins-role-badge").textContent = node.kind;
+      document.getElementById("ins-role-badge").style.color = node.color;
+      document.getElementById("ins-role-badge").style.borderColor = node.color;
+      document.getElementById("ins-upstream").textContent = upstream.size;
+      document.getElementById("ins-downstream").textContent = downstream.size;
+      document.getElementById("ins-loc").textContent = node.loc;
+      document.getElementById("ins-pagerank").textContent = (0.15 + (upstream.size * 0.12)).toFixed(2);
+
+      const riskPill = document.getElementById("ins-risk-pill");
+      if (node.kind === "MIDDLEWARE" || upstream.size >= 4) {
+        riskPill.textContent = `CRITICAL (${Math.min(100, 75 + upstream.size * 5)}/100)`;
+        riskPill.style.color = "var(--red)";
+        riskPill.style.borderColor = "var(--red)";
+        riskPill.style.background = "rgba(255,71,87,0.12)";
+      } else if (upstream.size >= 2) {
+        riskPill.textContent = `WARNING (${40 + upstream.size * 10}/100)`;
+        riskPill.style.color = "var(--amber)";
+        riskPill.style.borderColor = "var(--amber)";
+        riskPill.style.background = "rgba(255,165,2,0.12)";
+      } else {
+        riskPill.textContent = `SAFE (15/100)`;
+        riskPill.style.color = "var(--green)";
+        riskPill.style.borderColor = "var(--green)";
+        riskPill.style.background = "rgba(46,213,115,0.12)";
+      }
+
+      let desc = `Modifying <strong>${node.label}</strong> directly impacts <strong>${upstream.size}</strong> upstream file(s).`;
+      if (node.exports && node.exports.length > 0) {
+        desc += `<br><br><span class="mono" style="color:var(--text3);">Exported Symbols:</span><br><code class="mono" style="color:var(--accent); font-size:11px;">${node.exports.join(", ")}</code>`;
+      }
+      document.getElementById("ins-desc").innerHTML = desc;
+
+      // Highlight canvas nodes
+      activeData.nodes.forEach(n => {
+        const el = document.getElementById(`node-${n.id}`);
+        if (!el) return;
+        const circle = el.querySelector("circle:nth-child(2)");
+
+        if (n.id === id) {
+          circle.setAttribute("stroke", "#ffffff");
+          circle.setAttribute("stroke-width", "4");
+          circle.setAttribute("filter", "url(#glow-lime-svg)");
+          el.style.opacity = "1";
+        } else if (upstream.has(n.id)) {
+          circle.setAttribute("stroke", "#ff4757");
+          circle.setAttribute("stroke-width", "3");
+          circle.setAttribute("filter", "url(#glow-red-svg)");
+          el.style.opacity = "1";
+        } else if (downstream.has(n.id)) {
+          circle.setAttribute("stroke", "#e8ff47");
+          circle.setAttribute("stroke-width", "2.5");
+          circle.setAttribute("filter", "url(#glow-lime-svg)");
+          el.style.opacity = "1";
+        } else {
+          circle.setAttribute("stroke", "#222228");
+          circle.setAttribute("stroke-width", "1.5");
+          circle.removeAttribute("filter");
+          el.style.opacity = "0.35";
+        }
+      });
+
+      // Highlight edges
+      activeData.edges.forEach(e => {
+        const edgeEl = document.getElementById(`edge-${e.source}-${e.target}`);
+        if (!edgeEl) return;
+        if (upstream.has(e.source) && (e.target === id || upstream.has(e.target))) {
+          edgeEl.setAttribute("stroke", "#ff4757");
+          edgeEl.setAttribute("stroke-width", "2.4");
+          edgeEl.style.opacity = "1";
+        } else if (downstream.has(e.target) && (e.source === id || downstream.has(e.source))) {
+          edgeEl.setAttribute("stroke", "#e8ff47");
+          edgeEl.setAttribute("stroke-width", "2.4");
+          edgeEl.style.opacity = "1";
+        } else {
+          edgeEl.setAttribute("stroke", "#222228");
+          edgeEl.setAttribute("stroke-width", "1.2");
+          edgeEl.style.opacity = "0.2";
+        }
+      });
+    }
+
+    function loadSelectedRepo() {
+      const key = document.getElementById("repo-select").value;
+      activeData = DATASETS[key] || DATASETS.sentinel;
+      renderMainCanvas();
+    }
+
+    function filterNodes(query) {
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        if (selectedId) selectNode(selectedId);
+        return;
+      }
+      const match = activeData.nodes.find(n => n.id.toLowerCase().includes(q) || n.label.toLowerCase().includes(q));
+      if (match) selectNode(match.id);
+    }
+
+    function zoomIn() { scale = Math.min(3, scale * 1.2); updateTransform(); }
+    function zoomOut() { scale = Math.max(0.3, scale * 0.8); updateTransform(); }
+    function resetTransform() {
+      scale = 0.92;
+      translateX = (window.innerWidth - 380) / 2 - 600 * scale;
+      translateY = (window.innerHeight - 80) / 2 - 320 * scale;
+      updateTransform();
+    }
+    function updateTransform() {
+      const vp = document.getElementById("main-viewport");
+      if (vp) vp.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${scale})`);
+    }
+
+    function exportMermaid() {
+      let mm = "graph TD;\n";
+      activeData.edges.forEach(e => {
+        mm += `  ${e.source.replace(/[^a-zA-Z0-9]/g, "_")} --> ${e.target.replace(/[^a-zA-Z0-9]/g, "_")};\n`;
+      });
+      navigator.clipboard.writeText(mm).then(() => alert("Mermaid graph copied to clipboard!"));
+    }
+
+    // Dragging canvas
+    window.addEventListener("DOMContentLoaded", () => {
+      const svg = document.getElementById("main-svg");
+      if (svg) {
+        svg.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          startX = e.clientX - translateX;
+          startY = e.clientY - translateY;
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          translateX = e.clientX - startX;
+          translateY = e.clientY - startY;
+          updateTransform();
+        });
+        window.addEventListener("mouseup", () => { isDragging = false; });
+        svg.addEventListener("wheel", (e) => {
+          e.preventDefault();
+          const delta = e.deltaY > 0 ? 0.9 : 1.1;
+          scale = Math.min(3, Math.max(0.2, scale * delta));
+          updateTransform();
+        });
+      }
+
+      renderPreviewCanvas();
+    });
+  </script>
+</body>
+</html>

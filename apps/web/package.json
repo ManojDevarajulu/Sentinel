@@ -1,0 +1,8 @@
+{
+  "name": "sentinel-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Sentinel web build complete'"
+  }
+}

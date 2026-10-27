@@ -8,18 +8,18 @@ class ViewerGenerator:
     """Generates an Archify-grade, zero-dependency, self-contained interactive HTML visualizer."""
 
     KIND_COLORS = {
-        NodeKind.MIDDLEWARE: "#c084fc",  # Purple
-        NodeKind.ENTRYPOINT: "#818cf8",  # Indigo
-        NodeKind.LAYOUT: "#6366f1",      # Deep Indigo
-        NodeKind.ROUTER: "#34d399",      # Emerald
-        NodeKind.MODEL: "#fbbf24",       # Amber
-        NodeKind.SERVICE: "#38bdf8",     # Sky Blue
-        NodeKind.HOOK: "#f472b6",        # Pink
-        NodeKind.COMPONENT: "#fb7185",   # Rose
-        NodeKind.UTIL: "#94a3b8",        # Slate
-        NodeKind.CONFIG: "#a3e635",      # Lime
-        NodeKind.TEST: "#64748b",        # Gray
-        NodeKind.OTHER: "#cbd5e1",
+        NodeKind.MIDDLEWARE: "#ff4757",  # Vibrant Red
+        NodeKind.ENTRYPOINT: "#ffa502",  # Amber
+        NodeKind.LAYOUT: "#47b8ff",      # Electric Cyan
+        NodeKind.ROUTER: "#2ed573",      # Emerald Green
+        NodeKind.MODEL: "#e8ff47",       # Sentinel Acid Lime
+        NodeKind.SERVICE: "#a78bfa",     # Light Purple
+        NodeKind.HOOK: "#47b8ff",        # Cyan
+        NodeKind.COMPONENT: "#2ed573",   # Emerald
+        NodeKind.UTIL: "#8888a0",        # Muted Slate
+        NodeKind.CONFIG: "#ffa502",      # Amber
+        NodeKind.TEST: "#55556a",        # Slate Gray
+        NodeKind.OTHER: "#8888a0",
     }
 
     def __init__(self, nodes: Dict[str, CodeNode], edges: List[CodeEdge], repo_name: str = "Repository"):
@@ -83,21 +83,33 @@ class ViewerGenerator:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title} — Sentinel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <style>
     :root {{
-      --bg: #090d16;
-      --panel: #111827;
-      --panel-border: #1f293d;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #38bdf8;
-      --critical: #ef4444;
-      --warning: #f59e0b;
-      --safe: #10b981;
+      --bg: #0a0a0b;
+      --bg2: #111114;
+      --bg3: #18181d;
+      --panel: #111114;
+      --panel-border: #222228;
+      --border2: #2e2e38;
+      --text: #f0f0f2;
+      --text-muted: #8888a0;
+      --text-sub: #55556a;
+      --accent: #e8ff47;
+      --accent2: #ff6b35;
+      --accent3: #47b8ff;
+      --critical: #ff4757;
+      --warning: #ffa502;
+      --safe: #2ed573;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
       overflow: hidden;
@@ -107,8 +119,8 @@ class ViewerGenerator:
       flex-direction: column;
     }}
     header {{
-      background: rgba(17, 24, 39, 0.9);
-      backdrop-filter: blur(8px);
+      background: rgba(10, 10, 11, 0.94);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--panel-border);
       padding: 12px 24px;
       display: flex;
@@ -122,50 +134,70 @@ class ViewerGenerator:
       gap: 12px;
     }}
     .logo-badge {{
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      color: #000;
-      font-weight: 800;
-      font-size: 13px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232, 255, 71, 0.08);
+      border: 1px solid rgba(232, 255, 71, 0.3);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+    }}
+    .pulse-dot {{
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }}
+    @keyframes pulse {{
+      0%, 100% {{ opacity: 1; }}
+      50% {{ opacity: 0.3; }}
     }}
     .title-group h1 {{
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
+      font-family: var(--font-head);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }}
     .title-group p {{
-      font-size: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
       color: var(--text-muted);
     }}
     .controls {{
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }}
     .search-input {{
-      background: #1f293d;
-      border: 1px solid #374151;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
       color: var(--text);
+      font-family: var(--font-mono);
       padding: 6px 12px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       width: 220px;
       outline: none;
       transition: all 0.2s;
     }}
     .search-input:focus {{
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+      box-shadow: 0 0 0 2px rgba(232, 255, 71, 0.2);
     }}
     .btn {{
-      background: #1f293d;
-      border: 1px solid #374151;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
       color: var(--text);
+      font-family: var(--font-mono);
       padding: 6px 12px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -174,21 +206,25 @@ class ViewerGenerator:
       transition: all 0.15s;
     }}
     .btn:hover {{
-      background: #283548;
-      border-color: #4b5563;
+      background: var(--bg3);
+      color: var(--accent);
+      border-color: rgba(232, 255, 71, 0.3);
     }}
     .btn-accent {{
       background: var(--accent);
-      color: #090d16;
-      border: none;
+      color: #0a0a0b;
+      border: 1px solid var(--accent);
+      font-weight: 700;
     }}
     .btn-accent:hover {{
-      background: #7dd3fc;
+      background: #f5ff82;
+      color: #000;
     }}
     .main-container {{
       flex: 1;
       position: relative;
       overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, rgba(232, 255, 71, 0.02) 0%, transparent 60%);
     }}
     #canvas-svg {{
       width: 100%;
@@ -204,13 +240,13 @@ class ViewerGenerator:
       top: 16px;
       right: 16px;
       width: 340px;
-      background: rgba(17, 24, 39, 0.94);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--panel-border);
+      background: rgba(17, 17, 20, 0.95);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border2);
       border-radius: 12px;
       padding: 16px;
       z-index: 15;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
       transition: all 0.2s ease;
     }}
     .drawer-header {{
@@ -220,16 +256,20 @@ class ViewerGenerator:
       margin-bottom: 12px;
     }}
     .badge {{
-      display: inline-block;
-      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
       border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
     }}
-    .badge-critical {{ background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }}
-    .badge-warning {{ background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }}
-    .badge-safe {{ background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }}
+    .badge-critical {{ background: rgba(255, 71, 87, 0.12); color: var(--critical); border: 1px solid rgba(255, 71, 87, 0.3); }}
+    .badge-warning {{ background: rgba(255, 165, 2, 0.12); color: var(--warning); border: 1px solid rgba(255, 165, 2, 0.3); }}
+    .badge-safe {{ background: rgba(46, 213, 115, 0.12); color: var(--safe); border: 1px solid rgba(46, 213, 115, 0.3); }}
+    .badge-lime {{ background: rgba(232, 255, 71, 0.1); color: var(--accent); border: 1px solid rgba(232, 255, 71, 0.3); }}
     .meta-grid {{
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -238,20 +278,23 @@ class ViewerGenerator:
       margin-bottom: 12px;
     }}
     .meta-card {{
-      background: #1a2234;
+      background: var(--bg2);
       padding: 8px 10px;
       border-radius: 6px;
-      border: 1px solid #232e45;
+      border: 1px solid var(--panel-border);
     }}
     .meta-card .num {{
-      font-size: 16px;
-      font-weight: 700;
+      font-family: var(--font-head);
+      font-size: 18px;
+      font-weight: 800;
       color: var(--accent);
     }}
     .meta-card .lbl {{
-      font-size: 11px;
+      font-family: var(--font-mono);
+      font-size: 10px;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.05em;
     }}
     /* Floating Action Bar */
     .float-bar {{
@@ -259,49 +302,51 @@ class ViewerGenerator:
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(17, 24, 39, 0.94);
+      background: rgba(17, 17, 20, 0.95);
       backdrop-filter: blur(12px);
-      border: 1px solid var(--panel-border);
+      border: 1px solid var(--border2);
       border-radius: 30px;
       padding: 6px 16px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       z-index: 15;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }}
     .mode-tab {{
-      font-size: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
       font-weight: 600;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       cursor: pointer;
       color: var(--text-muted);
       transition: all 0.15s;
     }}
     .mode-tab.active {{
-      background: #1f293d;
-      color: #fff;
+      background: rgba(232, 255, 71, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(232, 255, 71, 0.3);
     }}
     .node-element {{
       cursor: pointer;
       transition: transform 0.15s ease, filter 0.15s ease;
     }}
     .node-element:hover circle {{
-      stroke: #fff;
+      stroke: var(--accent);
       stroke-width: 2.5px;
     }}
     .edge-element {{
-      stroke: #334155;
+      stroke: #222228;
       stroke-width: 1.2px;
       transition: stroke 0.2s, stroke-width 0.2s;
     }}
     .edge-highlight {{
-      stroke: #f87171 !important;
+      stroke: #ff4757 !important;
       stroke-width: 2.2px !important;
     }}
     .edge-downstream {{
-      stroke: #38bdf8 !important;
+      stroke: #e8ff47 !important;
       stroke-width: 2.2px !important;
     }}
   </style>
@@ -310,7 +355,7 @@ class ViewerGenerator:
 
   <header>
     <div class="brand">
-      <div class="logo-badge">SENTINEL</div>
+      <div class="logo-badge"><div class="pulse-dot"></div>SENTINEL</div>
       <div class="title-group">
         <h1 id="header-repo-title">{self.repo_name} Architecture</h1>
         <p id="header-stats">AST Graph & Blast-Radius Trace Engine</p>
@@ -329,16 +374,16 @@ class ViewerGenerator:
     <svg id="canvas-svg">
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569" />
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#3a3a46" />
         </marker>
         <marker id="arrow-hit" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#ff4757" />
         </marker>
         <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
-        <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id="glow-lime" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
@@ -354,10 +399,10 @@ class ViewerGenerator:
       <div class="drawer-header">
         <div>
           <span class="badge badge-safe" id="node-kind-badge">NODE</span>
-          <h2 id="node-label" style="font-size:15px; font-weight:700; margin-top:4px;">Select a Node</h2>
+          <h2 id="node-label" style="font-family:var(--font-head); font-size:16px; font-weight:700; margin-top:4px;">Select a Node</h2>
         </div>
       </div>
-      <p id="node-path" style="font-size:12px; color:var(--text-muted); word-break:break-all;"></p>
+      <p id="node-path" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); word-break:break-all;"></p>
 
       <div class="meta-grid">
         <div class="meta-card"><div class="num" id="meta-in-degree">0</div><div class="lbl">Upstream Importers</div></div>
@@ -530,20 +575,20 @@ class ViewerGenerator:
         if (n.id === focusedId) {{
           circle.setAttribute("stroke", "#ffffff");
           circle.setAttribute("stroke-width", "3.5");
-          circle.setAttribute("filter", "url(#glow-red)");
+          circle.setAttribute("filter", "url(#glow-lime)");
           el.style.opacity = "1";
         }} else if (upstreamSet.has(n.id) && (currentMode === "all" || currentMode === "upstream")) {{
-          circle.setAttribute("stroke", "#f87171");
+          circle.setAttribute("stroke", "#ff4757");
           circle.setAttribute("stroke-width", "2.5");
           circle.setAttribute("filter", "url(#glow-red)");
           el.style.opacity = "1";
         }} else if (downstreamSet.has(n.id) && (currentMode === "all" || currentMode === "downstream")) {{
-          circle.setAttribute("stroke", "#38bdf8");
+          circle.setAttribute("stroke", "#e8ff47");
           circle.setAttribute("stroke-width", "2.5");
-          circle.setAttribute("filter", "url(#glow-cyan)");
+          circle.setAttribute("filter", "url(#glow-lime)");
           el.style.opacity = "1";
         }} else {{
-          circle.setAttribute("stroke", "#1e293b");
+          circle.setAttribute("stroke", "#222228");
           circle.setAttribute("stroke-width", "1.5");
           circle.removeAttribute("filter");
           el.style.opacity = currentMode === "all" ? "0.6" : "0.15";

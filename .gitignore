@@ -10,6 +10,9 @@ venv/
 .coverage
 htmlcov/
 *.html
+!index.html
+!sentinel_preview.html
 !sentinel_architecture_sample.html
+!apps/web/index.html
 .DS_Store
 *.swp
