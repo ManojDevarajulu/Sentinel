@@ -111,9 +111,9 @@ Evaluated locally on consumer hardware across production multi-project repositor
 
 | Target Repository | Files Scanned | Import Edges | Scan + Graph Latency | Target Modified File | Blast Radius Count | Risk Assessment |
 | :--- | :---: | :---: | :---: | :--- | :---: | :---: |
-| **07-Sentinel (Self)** | 8 | 12 | **14.9ms** | `src/types.py` | 7 upstream files | **WARNING (56/100)** |
-| **01-intake (Clinical IDP)** | 19 | 32 | **45.9ms** | `src/schema.py` | 13 upstream files | **CRITICAL (100/100)** |
-| **03-ledger (Financial RAG)**| 17 | 23 | **27.8ms** | Full Repository | — | Topologically Mapped |
+| **Sentinel (Core Engine)** | 9 | 12 | **14.9ms** | `src/types.py` | 7 upstream files | **WARNING (56/100)** |
+| **Intake AI (Clinical IDP)** | 19 | 32 | **45.9ms** | `src/schema.py` | 13 upstream files | **CRITICAL (100/100)** |
+| **Ledger AI (Financial RAG)**| 17 | 23 | **27.8ms** | Full Repository | — | Topologically Mapped |
 
 - **Memory Overhead:** `< 15MB` RSS during full scan.
 - **External Dependencies:** Zero (Pure Python 3.10+ standard library).

@@ -136,33 +136,35 @@ class ViewerGenerator:
     .logo-badge {{
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: rgba(232, 255, 71, 0.08);
       border: 1px solid rgba(232, 255, 71, 0.3);
       color: var(--accent);
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      letter-spacing: 0.08em;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 15px;
+      padding: 5px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }}
     .pulse-dot {{
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--accent);
       animation: pulse 2s infinite;
+      box-shadow: 0 0 8px var(--accent);
     }}
     @keyframes pulse {{
       0%, 100% {{ opacity: 1; }}
-      50% {{ opacity: 0.3; }}
+      50% {{ opacity: 0.35; }}
     }}
     .title-group h1 {{
       font-family: var(--font-head);
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.02em;
     }}
     .title-group p {{
       font-family: var(--font-mono);

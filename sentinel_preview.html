@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>07-Sentinel Code Architecture — Sentinel</title>
+  <title>Sentinel Code Architecture — Sentinel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -57,33 +57,35 @@
     .logo-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: rgba(232, 255, 71, 0.08);
       border: 1px solid rgba(232, 255, 71, 0.3);
       color: var(--accent);
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      letter-spacing: 0.08em;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 15px;
+      padding: 5px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
     .pulse-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--accent);
       animation: pulse 2s infinite;
+      box-shadow: 0 0 8px var(--accent);
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+      50% { opacity: 0.35; }
     }
     .title-group h1 {
       font-family: var(--font-head);
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.02em;
     }
     .title-group p {
       font-family: var(--font-mono);
@@ -278,7 +280,7 @@
     <div class="brand">
       <div class="logo-badge"><div class="pulse-dot"></div>SENTINEL</div>
       <div class="title-group">
-        <h1 id="header-repo-title">07-Sentinel Architecture</h1>
+        <h1 id="header-repo-title">Sentinel Architecture</h1>
         <p id="header-stats">AST Graph & Blast-Radius Trace Engine</p>
       </div>
     </div>
@@ -347,7 +349,7 @@
   </div>
 
   <script>
-    const DATA = {"repoName": "07-Sentinel", "nodes": [{"id": "eval_benchmark.py", "label": "eval_benchmark.py", "path": "eval_benchmark.py", "kind": "OTHER", "color": "#8888a0", "loc": 70, "importance": 20, "inDegree": 0, "outDegree": 2, "exports": ["run_evaluation"], "x": 996.1610951566456, "y": 721.028387229617}, {"id": "sentinel.py", "label": "sentinel.py", "path": "sentinel.py", "kind": "OTHER", "color": "#8888a0", "loc": 195, "importance": 20, "inDegree": 0, "outDegree": 3, "exports": ["run_scan", "run_blast_radius", "run_git_diff", "run_serve", "main"], "x": 729.2633163401538, "y": 912.2672333712885}, {"id": "setup.py", "label": "setup.py", "path": "setup.py", "kind": "OTHER", "color": "#8888a0", "loc": 24, "importance": 20, "inDegree": 0, "outDegree": 0, "exports": [], "x": 401.88179520636527, "y": 887.2061034905018}, {"id": "src/__init__.py", "label": "__init__.py", "path": "src/__init__.py", "kind": "OTHER", "color": "#8888a0", "loc": 2, "importance": 20, "inDegree": 0, "outDegree": 0, "exports": [], "x": 167.201983934103, "y": 657.571378781911}, {"id": "src/ast_extractor.py", "label": "ast_extractor.py", "path": "src/ast_extractor.py", "kind": "OTHER", "color": "#8888a0", "loc": 285, "importance": 35, "inDegree": 3, "outDegree": 1, "exports": ["strip_js_comments", "ASTExtractor"], "x": 135.03317439323763, "y": 330.81169904235304}, {"id": "src/graph_engine.py", "label": "graph_engine.py", "path": "src/graph_engine.py", "kind": "OTHER", "color": "#8888a0", "loc": 179, "importance": 35, "inDegree": 3, "outDegree": 1, "exports": ["GraphEngine"], "x": 320.4275100844345, "y": 59.82154995129338}, {"id": "src/types.py", "label": "types.py", "path": "src/types.py", "kind": "OTHER", "color": "#8888a0", "loc": 61, "importance": 40, "inDegree": 4, "outDegree": 0, "exports": ["NodeKind", "EdgeKind", "CodeNode", "CodeEdge", "BlastRadiusReport"], "x": 636.6369209092511, "y": -28.599766011527947}, {"id": "src/viewer_generator.py", "label": "viewer_generator.py", "path": "src/viewer_generator.py", "kind": "OTHER", "color": "#8888a0", "loc": 683, "importance": 30, "inDegree": 2, "outDegree": 1, "exports": ["ViewerGenerator"], "x": 935.7035092666083, "y": 106.92106758635822}, {"id": "tests/test_sentinel_core.py", "label": "test_sentinel_core.py", "path": "tests/test_sentinel_core.py", "kind": "TEST", "color": "#55556a", "loc": 123, "importance": 15, "inDegree": 0, "outDegree": 4, "exports": ["TestSentinelCore"], "x": 1077.6906947092002, "y": 402.9723465582045}], "edges": [{"source": "eval_benchmark.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "eval_benchmark.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "sentinel.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "sentinel.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "sentinel.py", "target": "src/viewer_generator.py", "kind": "STATIC_IMPORT", "symbols": ["ViewerGenerator"]}, {"source": "src/ast_extractor.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["CodeEdge", "CodeNode", "EdgeKind", "NodeKind"]}, {"source": "src/graph_engine.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["BlastRadiusReport", "CodeEdge", "CodeNode", "NodeKind"]}, {"source": "src/viewer_generator.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["BlastRadiusReport", "CodeEdge", "CodeNode", "NodeKind"]}, {"source": "tests/test_sentinel_core.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "tests/test_sentinel_core.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "tests/test_sentinel_core.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["EdgeKind", "NodeKind"]}, {"source": "tests/test_sentinel_core.py", "target": "src/viewer_generator.py", "kind": "STATIC_IMPORT", "symbols": ["ViewerGenerator"]}], "report": {"changed_files": [], "affected_nodes": [], "blast_radius_count": 0, "risk_level": "SAFE", "risk_score": 0, "critical_paths": [], "hop_distances": {}, "summary": "Full repository dependency architecture view."}};
+    const DATA = {"repoName": "Sentinel", "nodes": [{"id": "eval_benchmark.py", "label": "eval_benchmark.py", "path": "eval_benchmark.py", "kind": "OTHER", "color": "#8888a0", "loc": 70, "importance": 20, "inDegree": 0, "outDegree": 2, "exports": ["run_evaluation"], "x": 996.1610951566456, "y": 721.028387229617}, {"id": "sentinel.py", "label": "sentinel.py", "path": "sentinel.py", "kind": "OTHER", "color": "#8888a0", "loc": 201, "importance": 20, "inDegree": 0, "outDegree": 3, "exports": ["run_scan", "run_blast_radius", "run_git_diff", "run_serve", "main"], "x": 729.2633163401538, "y": 912.2672333712885}, {"id": "setup.py", "label": "setup.py", "path": "setup.py", "kind": "OTHER", "color": "#8888a0", "loc": 24, "importance": 20, "inDegree": 0, "outDegree": 0, "exports": [], "x": 401.88179520636527, "y": 887.2061034905018}, {"id": "src/__init__.py", "label": "__init__.py", "path": "src/__init__.py", "kind": "OTHER", "color": "#8888a0", "loc": 2, "importance": 20, "inDegree": 0, "outDegree": 0, "exports": [], "x": 167.201983934103, "y": 657.571378781911}, {"id": "src/ast_extractor.py", "label": "ast_extractor.py", "path": "src/ast_extractor.py", "kind": "OTHER", "color": "#8888a0", "loc": 285, "importance": 35, "inDegree": 3, "outDegree": 1, "exports": ["strip_js_comments", "ASTExtractor"], "x": 135.03317439323763, "y": 330.81169904235304}, {"id": "src/graph_engine.py", "label": "graph_engine.py", "path": "src/graph_engine.py", "kind": "OTHER", "color": "#8888a0", "loc": 179, "importance": 35, "inDegree": 3, "outDegree": 1, "exports": ["GraphEngine"], "x": 320.4275100844345, "y": 59.82154995129338}, {"id": "src/types.py", "label": "types.py", "path": "src/types.py", "kind": "OTHER", "color": "#8888a0", "loc": 61, "importance": 40, "inDegree": 4, "outDegree": 0, "exports": ["NodeKind", "EdgeKind", "CodeNode", "CodeEdge", "BlastRadiusReport"], "x": 636.6369209092511, "y": -28.599766011527947}, {"id": "src/viewer_generator.py", "label": "viewer_generator.py", "path": "src/viewer_generator.py", "kind": "OTHER", "color": "#8888a0", "loc": 685, "importance": 30, "inDegree": 2, "outDegree": 1, "exports": ["ViewerGenerator"], "x": 935.7035092666083, "y": 106.92106758635822}, {"id": "tests/test_sentinel_core.py", "label": "test_sentinel_core.py", "path": "tests/test_sentinel_core.py", "kind": "TEST", "color": "#55556a", "loc": 123, "importance": 15, "inDegree": 0, "outDegree": 4, "exports": ["TestSentinelCore"], "x": 1077.6906947092002, "y": 402.9723465582045}], "edges": [{"source": "eval_benchmark.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "eval_benchmark.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "sentinel.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "sentinel.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "sentinel.py", "target": "src/viewer_generator.py", "kind": "STATIC_IMPORT", "symbols": ["ViewerGenerator"]}, {"source": "src/ast_extractor.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["CodeEdge", "CodeNode", "EdgeKind", "NodeKind"]}, {"source": "src/graph_engine.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["BlastRadiusReport", "CodeEdge", "CodeNode", "NodeKind"]}, {"source": "src/viewer_generator.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["BlastRadiusReport", "CodeEdge", "CodeNode", "NodeKind"]}, {"source": "tests/test_sentinel_core.py", "target": "src/ast_extractor.py", "kind": "STATIC_IMPORT", "symbols": ["ASTExtractor"]}, {"source": "tests/test_sentinel_core.py", "target": "src/graph_engine.py", "kind": "STATIC_IMPORT", "symbols": ["GraphEngine"]}, {"source": "tests/test_sentinel_core.py", "target": "src/types.py", "kind": "STATIC_IMPORT", "symbols": ["EdgeKind", "NodeKind"]}, {"source": "tests/test_sentinel_core.py", "target": "src/viewer_generator.py", "kind": "STATIC_IMPORT", "symbols": ["ViewerGenerator"]}], "report": {"changed_files": [], "affected_nodes": [], "blast_radius_count": 0, "risk_level": "SAFE", "risk_score": 0, "critical_paths": [], "hop_distances": {}, "summary": "Full repository dependency architecture view."}};
 
     let scale = 1;
     let translateX = 0;

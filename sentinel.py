@@ -18,6 +18,8 @@ def run_scan(repo_path: str, out_html: str = None, as_json: bool = False, open_b
     cycles = engine.find_circular_dependencies()
 
     repo_name = os.path.basename(os.path.abspath(repo_path))
+    if repo_name.startswith("07-") or repo_name == "07-Sentinel":
+        repo_name = "Sentinel"
     stats = {
         "repo_name": repo_name,
         "total_files": len(nodes),
@@ -72,6 +74,8 @@ def run_blast_radius(
 
     report = engine.compute_blast_radius(changed_files)
     repo_name = os.path.basename(os.path.abspath(repo_path))
+    if repo_name.startswith("07-") or repo_name == "07-Sentinel":
+        repo_name = "Sentinel"
 
     if as_json and not out_html:
         print(json.dumps(report.to_dict(), indent=2))
@@ -131,6 +135,8 @@ def run_serve(repo_path: str = ".", port: int = 7331, open_browser: bool = True)
     extractor = ASTExtractor(repo_path)
     nodes, edges = extractor.scan_repo()
     repo_name = os.path.basename(os.path.abspath(repo_path))
+    if repo_name.startswith("07-") or repo_name == "07-Sentinel":
+        repo_name = "Sentinel"
     viewer = ViewerGenerator(nodes, edges, repo_name=repo_name)
     html_content = viewer.generate_html(title=f"{repo_name} Code Architecture")
     html_bytes = html_content.encode("utf-8")

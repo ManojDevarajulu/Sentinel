@@ -64,38 +64,45 @@
     .brand-link {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       text-decoration: none;
       color: var(--text);
     }
-    .logo-badge {
+    .brand-logo-mark {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: var(--accent-bg);
       border: 1px solid var(--accent-sub);
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.06em;
+      padding: 5px 12px;
+      border-radius: 6px;
     }
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-    .brand-title {
+    .brand-name {
       font-family: var(--font-head);
       font-size: 16px;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      line-height: 1;
     }
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
 
     .nav-tabs {
       display: flex;
@@ -106,16 +113,17 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 0 14px;
+      padding: 0 16px;
       height: 56px;
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text2);
       border: none;
       background: none;
       cursor: pointer;
       border-bottom: 2px solid transparent;
+      letter-spacing: 0.04em;
       transition: all 0.2s;
     }
     .nav-tab:hover {
@@ -169,11 +177,39 @@
     }
 
     /* TYPOGRAPHY & COMMON */
-    h1 { font-family: var(--font-head); font-size: 3.5rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
-    h2 { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
-    h3 { font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    p { font-size: 15px; color: var(--text2); line-height: 1.7; }
-    .lime { color: var(--accent); }
+    h1 {
+      font-family: var(--font-head);
+      font-size: 3.75rem;
+      font-weight: 800;
+      line-height: 1.16;
+      letter-spacing: 0.01em;
+    }
+    h2 {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+    h3 {
+      font-family: var(--font-head);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.75;
+      letter-spacing: 0.01em;
+    }
+    .lime {
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      font-weight: 800;
+    }
     .mono { font-family: var(--font-mono); }
 
     /* HERO SECTION */
@@ -585,8 +621,8 @@
   <header class="nav">
     <div class="nav-left">
       <a href="#" class="brand-link" onclick="switchTab('overview')">
-        <div class="logo-badge"><div class="pulse-dot"></div>SENTINEL</div>
-        <span class="brand-title">AST Visualizer</span>
+        <div class="brand-logo-mark"><div class="pulse-dot"></div><span class="brand-name">SENTINEL</span></div>
+        <span class="brand-tag">CODEBASE AST ENGINE</span>
       </a>
       <div class="nav-tabs">
         <button class="nav-tab active" id="tab-btn-overview" onclick="switchTab('overview')">⚡ Overview</button>
@@ -806,9 +842,9 @@
         <div class="toolbar-left">
           <label class="mono" style="font-size:11px; color:var(--text3);">Repository:</label>
           <select id="repo-select" class="select-repo" onchange="loadSelectedRepo()">
-            <option value="sentinel">07-Sentinel (Self AST Graph)</option>
-            <option value="intake">01-intake (Clinical IDP Engine)</option>
-            <option value="ledger">03-ledger (Financial RAG Engine)</option>
+            <option value="sentinel">Sentinel (Core Architecture)</option>
+            <option value="intake">Intake AI (Clinical IDP Engine)</option>
+            <option value="ledger">Ledger AI (Financial RAG Engine)</option>
             <option value="monorepo">Full-Stack Monorepo Fixture</option>
           </select>
           <input type="text" id="node-search" class="search-files" placeholder="Search files... (/)" oninput="filterNodes(this.value)" />
@@ -906,7 +942,7 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>07-Sentinel</strong></td>
+              <td><strong>Sentinel (Core Engine)</strong></td>
               <td>9</td>
               <td>12</td>
               <td><span class="lime">16.6ms</span></td>
@@ -914,7 +950,7 @@
               <td>7 upstream files (WARNING)</td>
             </tr>
             <tr>
-              <td><strong>01-intake</strong></td>
+              <td><strong>Intake AI (Clinical IDP)</strong></td>
               <td>19</td>
               <td>32</td>
               <td><span class="lime">43.4ms</span></td>
@@ -922,7 +958,7 @@
               <td>13 upstream files (CRITICAL)</td>
             </tr>
             <tr>
-              <td><strong>03-ledger</strong></td>
+              <td><strong>Ledger AI (Financial RAG)</strong></td>
               <td>17</td>
               <td>23</td>
               <td><span class="lime">24.1ms</span></td>
@@ -983,7 +1019,7 @@
     // DATA REPOSITORIES
     const DATASETS = {
       sentinel: {
-        name: "07-Sentinel (Self AST Graph)",
+        name: "Sentinel (Core Architecture)",
         nodes: [
           { id: "sentinel.py", label: "sentinel.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 160, loc: 162, inDegree: 0, outDegree: 4, exports: ["main", "run_scan", "run_serve", "run_blast_radius"] },
           { id: "src/ast_extractor.py", label: "ast_extractor.py", kind: "SERVICE", color: "#a78bfa", x: 420, y: 280, loc: 180, inDegree: 2, outDegree: 2, exports: ["ASTExtractor"] },

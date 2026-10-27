@@ -16,7 +16,7 @@ def run_evaluation():
     report = engine.compute_blast_radius(["src/types.py"])
     duration_ms = (time.perf_counter() - start) * 1000
 
-    print(f"[Benchmark 1: 07-Sentinel]")
+    print(f"[Benchmark 1: Sentinel Core]")
     print(f"  - Extracted:      {len(nodes)} files, {len(edges)} import edges")
     print(f"  - Blast Radius:   {report.blast_radius_count} upstream files ({report.risk_level})")
     print(f"  - Scan + BFS:     {duration_ms:.2f}ms")
