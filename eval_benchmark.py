@@ -21,7 +21,30 @@ def run_evaluation():
     print(f"  - Blast Radius:   {report.blast_radius_count} upstream files ({report.risk_level})")
     print(f"  - Scan + BFS:     {duration_ms:.2f}ms")
 
-    # 2. Benchmark 01-intake (if available)
+    # 2. Benchmark standalone multi-hop architecture fixture (guaranteed on isolated CI)
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.makedirs(os.path.join(tmpdir, "src", "models"), exist_ok=True)
+        os.makedirs(os.path.join(tmpdir, "src", "services"), exist_ok=True)
+        with open(os.path.join(tmpdir, "src", "models", "core.py"), "w") as f:
+            f.write("class BaseEntity:\n    pass\n")
+        with open(os.path.join(tmpdir, "src", "services", "auth.py"), "w") as f:
+            f.write("from src.models.core import BaseEntity\n")
+        with open(os.path.join(tmpdir, "src", "server.py"), "w") as f:
+            f.write("from src.services.auth import BaseEntity\n")
+
+        start = time.perf_counter()
+        ext_fix = ASTExtractor(tmpdir)
+        n_fix, e_fix = ext_fix.scan_repo()
+        g_fix = GraphEngine(n_fix, e_fix)
+        rep_fix = g_fix.compute_blast_radius(["src/models/core.py"])
+        fix_ms = (time.perf_counter() - start) * 1000
+        print(f"\n[Benchmark 2: Synthetic Multi-Hop Fixture]")
+        print(f"  - Extracted:      {len(n_fix)} files, {len(e_fix)} import edges")
+        print(f"  - Blast Radius:   {rep_fix.blast_radius_count} upstream files ({rep_fix.risk_level})")
+        print(f"  - Scan + BFS:     {fix_ms:.2f}ms")
+
+    # 3. Benchmark 01-intake (if available in workspace)
     intake_path = "../01-intake"
     if os.path.isdir(intake_path):
         start = time.perf_counter()
@@ -31,7 +54,7 @@ def run_evaluation():
         report2 = engine2.compute_blast_radius(["src/schema.py"])
         duration2_ms = (time.perf_counter() - start) * 1000
 
-        print(f"\n[Benchmark 2: 01-intake]")
+        print(f"\n[Benchmark 3: 01-intake (Clinical IDP)]")
         print(f"  - Extracted:      {len(nodes2)} files, {len(edges2)} import edges")
         print(f"  - Target:         src/schema.py -> {report2.blast_radius_count} upstream files ({report2.risk_level})")
         print(f"  - Critical Paths: {len(report2.critical_paths)} identified")
