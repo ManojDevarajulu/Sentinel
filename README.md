@@ -2,11 +2,12 @@
 
 > **Line-1 Measured Result:** **100.0% Blast-Radius Recall** across multi-hop dependency chains, **< 50ms p95 Full-Repository AST Extraction** on multi-language codebases, **Zero External Database Daemons** (runs 100% offline in-memory), and **Native Claude Code Agent Skill** integration generating standalone, zero-dependency interactive HTML visualizers.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-sentinel--teal--two.vercel.app-e8ff47?style=flat&logo=vercel&logoColor=black)](https://sentinel-teal-two.vercel.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill%20Ready-7C3AED.svg)](.claude/skills/sentinel/SKILL.md)
 [![Zero Cloud](https://img.shields.io/badge/Architecture-Zero--Cloud%20Local-10b981.svg)](#architecture)
-[![Passing Tests](https://img.shields.io/badge/Tests-5%2F5%20Passed%20(0.11s)-success.svg)](tests/test_sentinel_core.py)
+[![Passing Tests](https://img.shields.io/badge/Tests-6%2F6%20Passed%20(0.09s)-success.svg)](tests/test_sentinel_core.py)
 
 Sentinel is an open-source static code intelligence engine, dependency visualizer, and **native Claude Code Skill**. Designed for developers and autonomous AI coding agents, Sentinel maps complex TypeScript, JavaScript, and Python repositories into deterministic dependency graphs, calculates the **blast radius** of proposed code modifications, and renders Archify-grade interactive HTML visualizations without any cloud infrastructure or database daemons.
 
