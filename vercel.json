@@ -1,8 +1,6 @@
 {
   "version": 2,
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "buildCommand": "cd apps/web && npm install && npm run build",
+  "outputDirectory": "apps/web/out",
+  "cleanUrls": true
 }

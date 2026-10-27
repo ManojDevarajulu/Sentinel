@@ -16,3 +16,12 @@ htmlcov/
 !apps/web/index.html
 .DS_Store
 *.swp
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+apps/web/out/
+apps/web/.next/
+*.tsbuildinfo
+next-env.d.ts

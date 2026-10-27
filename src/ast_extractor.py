@@ -27,6 +27,7 @@ IGNORE_DIRS = {
     ".next",
     "dist",
     "build",
+    "out",
     ".turbo",
     ".idea",
     ".vscode",
