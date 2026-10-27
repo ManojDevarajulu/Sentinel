@@ -138,7 +138,7 @@ python sentinel.py blast-radius --changed src/schema.py --out sentinel_blast.htm
 
 Claude receives structured JSON in stdout and immediately provides an architectural blast report:
 ```text
-⚠️ BLAST RADIUS ALERT: Modifying 'src/schema.py' is classified as CRITICAL (Risk Score: 100/100).
+[CRITICAL] BLAST RADIUS ALERT: Modifying 'src/schema.py' is classified as CRITICAL (Risk Score: 100/100).
 - Upstream Reach: 13 dependent files affected across 2 hops.
 - Critical Path: src/schema.py -> src/calibrated_router.py -> web/server.py
 - Interactive Visualizer generated: sentinel_blast.html

@@ -54,13 +54,13 @@ def run_evaluation():
         report2 = engine2.compute_blast_radius(["src/schema.py"])
         duration2_ms = (time.perf_counter() - start) * 1000
 
-        print(f"\n[Benchmark 3: 01-intake (Clinical IDP)]")
+        print(f"\n[Benchmark 3: Intake AI (Clinical IDP)]")
         print(f"  - Extracted:      {len(nodes2)} files, {len(edges2)} import edges")
         print(f"  - Target:         src/schema.py -> {report2.blast_radius_count} upstream files ({report2.risk_level})")
         print(f"  - Critical Paths: {len(report2.critical_paths)} identified")
         print(f"  - Scan + BFS:     {duration2_ms:.2f}ms")
 
-    # 3. Benchmark 03-ledger (if available)
+    # 4. Benchmark Ledger AI (if available)
     ledger_path = "../03-ledger"
     if os.path.isdir(ledger_path):
         start = time.perf_counter()
@@ -69,7 +69,7 @@ def run_evaluation():
         engine3 = GraphEngine(nodes3, edges3)
         duration3_ms = (time.perf_counter() - start) * 1000
 
-        print(f"\n[Benchmark 3: 03-ledger]")
+        print(f"\n[Benchmark 4: Ledger AI (Financial RAG)]")
         print(f"  - Extracted:      {len(nodes3)} files, {len(edges3)} import edges")
         print(f"  - Scan + Graph:   {duration3_ms:.2f}ms")
 

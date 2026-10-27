@@ -137,28 +137,12 @@ class ViewerGenerator:
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(232, 255, 71, 0.08);
-      border: 1px solid rgba(232, 255, 71, 0.3);
-      color: var(--accent);
+      color: var(--text);
       font-family: var(--font-head);
       font-weight: 800;
-      font-size: 15px;
-      padding: 5px 14px;
-      border-radius: 6px;
-      letter-spacing: 0.1em;
+      font-size: 16px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-    }}
-    .pulse-dot {{
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
-      box-shadow: 0 0 8px var(--accent);
-    }}
-    @keyframes pulse {{
-      0%, 100% {{ opacity: 1; }}
-      50% {{ opacity: 0.35; }}
     }}
     .title-group h1 {{
       font-family: var(--font-head);
@@ -189,8 +173,8 @@ class ViewerGenerator:
       transition: all 0.2s;
     }}
     .search-input:focus {{
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(232, 255, 71, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
     }}
     .btn {{
       background: var(--bg2);
@@ -200,7 +184,7 @@ class ViewerGenerator:
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -209,17 +193,17 @@ class ViewerGenerator:
     }}
     .btn:hover {{
       background: var(--bg3);
-      color: var(--accent);
-      border-color: rgba(232, 255, 71, 0.3);
+      border-color: rgba(255, 255, 255, 0.2);
     }}
     .btn-accent {{
-      background: var(--accent);
+      background: var(--text);
       color: #0a0a0b;
-      border: 1px solid var(--accent);
-      font-weight: 700;
+      border: 1px solid var(--text);
+      font-weight: 600;
     }}
     .btn-accent:hover {{
-      background: #f5ff82;
+      background: #ffffff;
+      border-color: #ffffff;
       color: #000;
     }}
     .main-container {{
@@ -357,10 +341,10 @@ class ViewerGenerator:
 
   <header>
     <div class="brand">
-      <div class="logo-badge"><div class="pulse-dot"></div>SENTINEL</div>
+      <div class="logo-badge">SENTINEL</div>
       <div class="title-group">
         <h1 id="header-repo-title">{self.repo_name} Architecture</h1>
-        <p id="header-stats">AST Graph & Blast-Radius Trace Engine</p>
+        <p id="header-stats">Dependency Graph & Blast-Radius Engine</p>
       </div>
     </div>
     <div class="controls">
@@ -670,7 +654,14 @@ class ViewerGenerator:
         DATA.edges.forEach(e => {{
           mm += `  ${{e.source.replace(/[^a-zA-Z0-9]/g, "_")}} --> ${{e.target.replace(/[^a-zA-Z0-9]/g, "_")}};\\n`;
         }});
-        navigator.clipboard.writeText(mm).then(() => alert("Copied Mermaid graph to clipboard!"));
+        const btn = document.getElementById("btn-copy-mermaid");
+        navigator.clipboard.writeText(mm).then(() => {{
+          if (btn) {{
+            const orig = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => {{ btn.textContent = orig; }}, 1800);
+          }}
+        }});
       }});
     }}
 

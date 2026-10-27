@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentinel — AI Codebase AST Visualizer & Blast-Radius Engine</title>
-  <meta name="description" content="Zero-cloud, zero-auth codebase AST visualizer and blast-radius engine. Map dependencies, detect cycles, and trace impact before code merges.">
+  <title>Sentinel — Codebase AST & Blast-Radius Engine</title>
+  <meta name="description" content="Zero-cloud codebase AST and blast-radius engine. Map dependencies, detect cycles, and trace impact before code merges.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -64,45 +64,19 @@
     .brand-link {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
       color: var(--text);
     }
-    .brand-logo-mark {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-sub);
-      padding: 5px 12px;
-      border-radius: 6px;
-    }
     .brand-name {
       font-family: var(--font-head);
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 800;
-      letter-spacing: 0.1em;
-      color: var(--accent);
+      letter-spacing: 0.12em;
+      color: var(--text);
       text-transform: uppercase;
       line-height: 1;
     }
-    .brand-tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text3);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .pulse-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
-      box-shadow: 0 0 8px var(--accent);
-    }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
 
     .nav-tabs {
       display: flex;
@@ -112,12 +86,11 @@
     .nav-tab {
       display: flex;
       align-items: center;
-      gap: 6px;
       padding: 0 16px;
       height: 56px;
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text2);
       border: none;
       background: none;
@@ -130,8 +103,9 @@
       color: var(--text);
     }
     .nav-tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
+      color: var(--text);
+      border-bottom-color: var(--text);
+      font-weight: 600;
     }
 
     .nav-right {
@@ -142,30 +116,33 @@
     .badge-pill {
       font-family: var(--font-mono);
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 500;
       padding: 4px 10px;
       border-radius: 20px;
       background: var(--bg2);
       border: 1px solid var(--border2);
-      color: var(--text2);
+      color: var(--text3);
+      letter-spacing: 0.04em;
     }
     .btn-github {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       padding: 6px 14px;
       border-radius: 6px;
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 600;
-      color: #0a0a0b;
-      background: var(--accent);
-      border: 1px solid var(--accent);
+      font-weight: 500;
+      color: var(--text);
+      background: var(--bg2);
+      border: 1px solid var(--border2);
       text-decoration: none;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
     }
     .btn-github:hover {
-      background: #f5ff82;
+      background: var(--bg3);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
     }
 
     /* PANELS */
@@ -248,16 +225,19 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-sub);
-      padding: 5px 12px;
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 14px;
+      border-radius: 20px;
       font-family: var(--font-mono);
       font-size: 10px;
-      font-weight: 700;
-      color: var(--accent);
+      font-weight: 500;
+      color: var(--text2);
       letter-spacing: 0.08em;
       margin-bottom: 1.5rem;
+    }
+    .eyebrow-sep {
+      color: var(--text3);
     }
     .hero-sub {
       font-size: 1.25rem;
@@ -275,42 +255,54 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-    .btn-hero-primary {
+    .btn-primary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      background: var(--accent);
-      color: #0a0a0b;
+      background: var(--text);
+      color: #09090b;
       font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 12px 24px;
-      border-radius: 8px;
-      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: 1px solid var(--text);
       cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px var(--accent-glow);
+      text-decoration: none;
+      transition: all 0.15s ease;
+      letter-spacing: 0.02em;
     }
-    .btn-hero-primary:hover {
-      background: #f5ff82;
+    .btn-primary:hover {
+      background: #ffffff;
+      border-color: #ffffff;
       transform: translateY(-1px);
     }
     .cmd-box {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       background: var(--bg2);
       border: 1px solid var(--border2);
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 9px 16px;
+      border-radius: 6px;
       font-family: var(--font-mono);
       font-size: 12px;
       color: var(--text);
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.15s ease;
     }
     .cmd-box:hover {
-      border-color: var(--accent);
+      border-color: rgba(255, 255, 255, 0.25);
+      background: var(--bg3);
+    }
+    .cmd-action {
+      color: var(--text3);
+      font-size: 11px;
+      transition: color 0.15s;
+    }
+    .cmd-box:hover .cmd-action {
+      color: var(--text);
     }
 
     /* STATS STRIP */
@@ -345,30 +337,30 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 16px;
-      background: rgba(17, 17, 20, 0.8);
+      padding: 8px 16px;
+      background: var(--bg3);
       border-bottom: 1px solid var(--border);
-    }
-    .mac-dots {
-      display: flex;
-      gap: 6px;
-    }
-    .mac-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-    .dot-red { background: var(--red); }
-    .dot-yellow { background: var(--amber); }
-    .dot-green { background: var(--green); }
-    .preview-badge {
       font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .topbar-path {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .topbar-scope { color: var(--text3); }
+    .topbar-sep { color: var(--border2); }
+    .topbar-file { color: var(--text); font-weight: 500; }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-status {
+      color: var(--text3);
       font-size: 10px;
-      color: var(--accent);
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-sub);
-      padding: 2px 8px;
-      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .preview-canvas-holder {
       height: 360px;
@@ -532,22 +524,24 @@
       box-shadow: 0 0 0 2px var(--accent-sub);
     }
     .btn-tool {
-      background: var(--bg3);
+      background: var(--bg2);
       border: 1px solid var(--border2);
-      color: var(--text);
+      color: var(--text2);
       font-family: var(--font-mono);
       font-size: 11px;
+      font-weight: 500;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
     }
     .btn-tool:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text);
+      background: var(--bg3);
     }
 
     .canvas-container {
@@ -621,19 +615,23 @@
   <header class="nav">
     <div class="nav-left">
       <a href="#" class="brand-link" onclick="switchTab('overview')">
-        <div class="brand-logo-mark"><div class="pulse-dot"></div><span class="brand-name">SENTINEL</span></div>
-        <span class="brand-tag">CODEBASE AST ENGINE</span>
+        <span class="brand-name">SENTINEL</span>
       </a>
       <div class="nav-tabs">
-        <button class="nav-tab active" id="tab-btn-overview" onclick="switchTab('overview')">⚡ Overview</button>
-        <button class="nav-tab" id="tab-btn-visualizer" onclick="switchTab('visualizer')">🔮 Interactive Visualizer</button>
-        <button class="nav-tab" id="tab-btn-blueprint" onclick="switchTab('blueprint')">📋 Architecture Specs</button>
-        <button class="nav-tab" id="tab-btn-cli" onclick="switchTab('cli')">💻 CLI & Claude Skill</button>
+        <button class="nav-tab active" id="tab-btn-overview" onclick="switchTab('overview')">Overview</button>
+        <button class="nav-tab" id="tab-btn-visualizer" onclick="switchTab('visualizer')">Graph Explorer</button>
+        <button class="nav-tab" id="tab-btn-blueprint" onclick="switchTab('blueprint')">Architecture</button>
+        <button class="nav-tab" id="tab-btn-cli" onclick="switchTab('cli')">CLI & MCP</button>
       </div>
     </div>
     <div class="nav-right">
-      <span class="badge-pill">Zero Auth · 100% Offline</span>
-      <a href="https://github.com/ManojDevarajulu/Sentinel" target="_blank" class="btn-github">★ Star on GitHub</a>
+      <span class="badge-pill">Local AST Engine</span>
+      <a href="https://github.com/ManojDevarajulu/Sentinel" target="_blank" class="btn-github">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
     </div>
   </header>
 
@@ -644,8 +642,11 @@
       <div class="hero-glow-blob"></div>
 
       <div class="eyebrow">
-        <div class="pulse-dot"></div>
-        OPEN SOURCE · ZERO CLOUD · ZERO AUTH DEVELOPER TOOL
+        <span>OPEN SOURCE</span>
+        <span class="eyebrow-sep">·</span>
+        <span>DETERMINISTIC AST</span>
+        <span class="eyebrow-sep">·</span>
+        <span>ZERO AUTH</span>
       </div>
 
       <h1>
@@ -659,10 +660,10 @@
       </p>
 
       <div class="hero-actions">
-        <button class="btn-hero-primary" onclick="switchTab('visualizer')">Launch Interactive Visualizer ➔</button>
+        <button class="btn-primary" onclick="switchTab('visualizer')">Open Graph Explorer</button>
         <div class="cmd-box" onclick="copyInstall()">
-          <span>$ pip install .</span>
-          <span style="color:var(--accent);">[Copy]</span>
+          <span class="mono">$ pip install .</span>
+          <span class="cmd-action" id="cmd-action-label">Copy</span>
         </div>
       </div>
 
@@ -688,13 +689,15 @@
       <!-- INTERACTIVE PREVIEW GRAPH CARD -->
       <div class="preview-card">
         <div class="card-topbar">
-          <div class="mac-dots">
-            <div class="mac-dot dot-red"></div>
-            <div class="mac-dot dot-yellow"></div>
-            <div class="mac-dot dot-green"></div>
+          <div class="topbar-path">
+            <span class="topbar-scope">workspace</span>
+            <span class="topbar-sep">/</span>
+            <span class="topbar-file">architecture.graph</span>
           </div>
-          <span class="preview-badge">Live Interactive AST Preview (Click any node)</span>
-          <button class="btn-tool" onclick="switchTab('visualizer')">Full Canvas ↗</button>
+          <div class="topbar-actions">
+            <span class="topbar-status">Interactive Preview</span>
+            <button class="btn-tool" onclick="switchTab('visualizer')">Expand View</button>
+          </div>
         </div>
         <div class="preview-canvas-holder">
           <svg id="preview-svg" viewBox="0 0 800 360" style="width:100%; height:100%;">
@@ -850,10 +853,10 @@
           <input type="text" id="node-search" class="search-files" placeholder="Search files... (/)" oninput="filterNodes(this.value)" />
         </div>
         <div class="toolbar-right">
-          <button class="btn-tool" onclick="zoomIn()">Zoom (+)</button>
-          <button class="btn-tool" onclick="zoomOut()">Zoom (-)</button>
-          <button class="btn-tool" onclick="resetTransform()">Center (0)</button>
-          <button class="btn-tool" onclick="exportMermaid()">Copy Mermaid</button>
+          <button class="btn-tool" onclick="zoomIn()">Zoom In</button>
+          <button class="btn-tool" onclick="zoomOut()">Zoom Out</button>
+          <button class="btn-tool" onclick="resetTransform()">Reset</button>
+          <button class="btn-tool" id="btn-export-mermaid" onclick="exportMermaid()">Copy Mermaid</button>
         </div>
       </div>
 
@@ -1012,7 +1015,7 @@
 
   <!-- FOOTER -->
   <footer>
-    Sentinel — Open Source Codebase AST Visualizer & Blast-Radius Engine · MIT License · Designed & Engineered by Manoj Devarajulu
+    Sentinel — Codebase AST & Blast-Radius Engine · MIT License · Designed & Engineered by Manoj Devarajulu
   </footer>
 
   <script>
@@ -1045,7 +1048,7 @@
         ]
       },
       intake: {
-        name: "01-intake (Clinical IDP Engine)",
+        name: "Intake AI (Clinical IDP Engine)",
         nodes: [
           { id: "web/server.py", label: "server.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 150, loc: 600, inDegree: 0, outDegree: 4, exports: ["app", "upload_referral_document", "update_referral_field"] },
           { id: "src/calibrated_router.py", label: "calibrated_router.py", kind: "ROUTER", color: "#2ed573", x: 420, y: 280, loc: 160, inDegree: 1, outDegree: 2, exports: ["CalibratedRouter"] },
@@ -1066,7 +1069,7 @@
         ]
       },
       ledger: {
-        name: "03-ledger (Financial RAG Engine)",
+        name: "Ledger AI (Financial RAG Engine)",
         nodes: [
           { id: "web/server.py", label: "server.py", kind: "ENTRYPOINT", color: "#ffa502", x: 600, y: 150, loc: 420, inDegree: 0, outDegree: 3, exports: ["app"] },
           { id: "src/hybrid_retriever.py", label: "hybrid_retriever.py", kind: "SERVICE", color: "#a78bfa", x: 450, y: 300, loc: 280, inDegree: 1, outDegree: 1, exports: ["HybridRetriever"] },
@@ -1129,7 +1132,15 @@
 
     function copyInstall() {
       navigator.clipboard.writeText("pip install .");
-      alert("Copied 'pip install .' to clipboard! Works completely offline with 0 dependencies.");
+      const lbl = document.getElementById("cmd-action-label");
+      if (lbl) {
+        lbl.textContent = "Copied!";
+        lbl.style.color = "var(--text)";
+        setTimeout(() => {
+          lbl.textContent = "Copy";
+          lbl.style.color = "";
+        }, 1800);
+      }
     }
 
     function renderPreviewCanvas() {
@@ -1408,7 +1419,14 @@
       activeData.edges.forEach(e => {
         mm += `  ${e.source.replace(/[^a-zA-Z0-9]/g, "_")} --> ${e.target.replace(/[^a-zA-Z0-9]/g, "_")};\n`;
       });
-      navigator.clipboard.writeText(mm).then(() => alert("Mermaid graph copied to clipboard!"));
+      const btn = document.getElementById("btn-export-mermaid");
+      navigator.clipboard.writeText(mm).then(() => {
+        if (btn) {
+          const orig = btn.textContent;
+          btn.textContent = "Copied!";
+          setTimeout(() => { btn.textContent = orig; }, 1800);
+        }
+      });
     }
 
     // Dragging canvas
