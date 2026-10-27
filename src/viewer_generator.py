@@ -628,9 +628,9 @@ class ViewerGenerator:
     }}
 
     function centerGraph() {{
-      scale = 0.85;
-      translateX = window.innerWidth / 3;
-      translateY = window.innerHeight / 3;
+      scale = 0.92;
+      translateX = (window.innerWidth - 340) / 2 - 600 * scale;
+      translateY = window.innerHeight / 2 - 450 * scale;
       updateTransform();
     }}
 
