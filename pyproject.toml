@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-ast"
+version = "1.0.0"
+description = "Zero-cloud AST dependency visualizer and blast-radius engine for Python codebases"
+readme = "README.md"
+authors = [{ name = "Manoj Devarajulu", email = "manojdevarajuluad2020@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["ast", "visualization", "dependency-graph", "blast-radius", "code-analysis", "developer-tools", "graphify", "archify"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Code Analyzers",
+]
+requires-python = ">=3.8"
+dependencies = []
+
+[project.scripts]
+sentinel = "sentinel:main"
+
+[project.urls]
+Homepage = "https://github.com/ManojDevarajulu/Sentinel"
+Repository = "https://github.com/ManojDevarajulu/Sentinel"

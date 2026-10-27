@@ -145,28 +145,59 @@ Claude receives structured JSON in stdout and immediately provides an architectu
 
 ---
 
-## 3. Standalone CLI Usage
+## 3. Installation & Standalone CLI (Graphify & Archify Experience)
 
-### A. Full Architecture Scan & Interactive HTML Report
+Sentinel runs 100% locally on your machine with **zero login, zero sign-up, zero API keys, and zero cloud dependencies**.
+
+### Installation
+
+```bash
+# Clone and install globally/locally via pip
+git clone https://github.com/ManojDevarajulu/Sentinel.git
+cd Sentinel
+pip install .
+```
+
+Once installed, the `sentinel` command is directly available anywhere in your terminal.
+
+---
+
+### CLI Commands
+
+#### A. Instant Local Visualizer Server (`sentinel serve`)
+Spins up a lightweight built-in HTTP server, scans the codebase in milliseconds, and automatically opens the interactive architecture canvas in your default browser:
+
+```bash
+# Serve interactive architecture visualizer for current repo on port 7331
+sentinel serve .
+
+# Serve another project directory on a custom port
+sentinel serve /path/to/project --port 8080
+```
+
+#### B. Full Architecture Scan & Standalone HTML Export
 Scan any repository and generate a single-file, zero-dependency HTML viewer:
 
 ```bash
 # Scan current directory and open interactive visualizer
-python sentinel.py scan . --out architecture.html --open
+sentinel scan . --out architecture.html --open
+
+# Output raw JSON architectural summary
+sentinel scan . --json
 ```
 
-### B. Blast-Radius Audit on Specific Files
+#### C. Blast-Radius Audit on Specific Files
 Audit the upstream ripple effect of modifying one or more files:
 
 ```bash
-python sentinel.py blast-radius --changed src/types.py src/graph_engine.py --out blast.html --open
+sentinel blast-radius --changed src/types.py src/graph_engine.py --out blast.html --open
 ```
 
-### C. Automated Git Diff Audit (Pre-Commit / Pre-PR)
+#### D. Automated Git Diff Audit (Pre-Commit / Pre-PR)
 Evaluate the blast radius of your active Git changes against `origin/main`:
 
 ```bash
-python sentinel.py git-diff --base origin/main --out pr_audit.html
+sentinel git-diff --base origin/main --out pr_audit.html
 ```
 
 ---

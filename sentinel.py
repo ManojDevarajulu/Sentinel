@@ -120,9 +120,72 @@ def run_git_diff(repo_path: str, base_ref: str, out_html: str = None, as_json: b
     run_blast_radius(repo_path, changed, out_html, as_json, open_browser)
 
 
+def run_serve(repo_path: str = ".", port: int = 7331, open_browser: bool = True):
+    """
+    Spins up a lightweight local HTTP server and opens the interactive visualizer in the default browser.
+    Works completely offline with zero logins, zero signups, and zero cloud services (like Archify/Graphify).
+    """
+    import http.server
+    import socketserver
+
+    extractor = ASTExtractor(repo_path)
+    nodes, edges = extractor.scan_repo()
+    repo_name = os.path.basename(os.path.abspath(repo_path))
+    viewer = ViewerGenerator(nodes, edges, repo_name=repo_name)
+    html_content = viewer.generate_html(title=f"{repo_name} Code Architecture")
+    html_bytes = html_content.encode("utf-8")
+
+    class SentinelRequestHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(html_bytes)))
+            self.end_headers()
+            self.wfile.write(html_bytes)
+
+        def log_message(self, format, *args):
+            pass
+
+    socketserver.TCPServer.allow_reuse_address = True
+    actual_port = port
+    httpd = None
+    for p in range(port, port + 20):
+        try:
+            httpd = socketserver.TCPServer(("", p), SentinelRequestHandler)
+            actual_port = p
+            break
+        except OSError:
+            continue
+
+    if httpd is None:
+        print(f"Error: Could not bind to any port in range {port}-{port+20}")
+        return
+
+    url = f"http://localhost:{actual_port}"
+    print("\n" + "=" * 60)
+    print(" SENTINEL LOCAL ARCHITECTURE SERVER (Zero Auth / Zero Cloud)")
+    print("=" * 60)
+    print(f"Repository:   {repo_name}")
+    print(f"Files:        {len(nodes)}")
+    print(f"Dependencies: {len(edges)}")
+    print(f"Server URL:   {url}")
+    print("Status:       Active (No login required - Graphify/Archify mode)")
+    print("[Press Ctrl+C to stop server]")
+    print("=" * 60 + "\n")
+
+    if open_browser:
+        webbrowser.open(url)
+
+    try:
+        with httpd:
+            httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nSentinel server stopped.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Sentinel: Codebase AST Visualizer & Blast-Radius Engine")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command")
 
     # Scan command
     scan_p = subparsers.add_parser("scan", help="Scan repository and build dependency architecture")
@@ -130,6 +193,12 @@ def main():
     scan_p.add_argument("--out", "-o", help="Path to write standalone interactive HTML visualizer")
     scan_p.add_argument("--json", action="store_true", help="Output raw JSON summary")
     scan_p.add_argument("--open", action="store_true", help="Open generated HTML in browser")
+
+    # Serve command (Graphify / Archify mode)
+    serve_p = subparsers.add_parser("serve", help="Start local interactive visualizer in browser (like Archify/Graphify)")
+    serve_p.add_argument("repo", nargs="?", default=".", help="Repository path (default: current directory)")
+    serve_p.add_argument("--port", "-p", type=int, default=7331, help="Port to serve on (default: 7331)")
+    serve_p.add_argument("--no-browser", action="store_true", help="Do not automatically open browser")
 
     # Blast-Radius command
     blast_p = subparsers.add_parser("blast-radius", help="Calculate blast radius of changed files")
@@ -149,8 +218,14 @@ def main():
 
     args = parser.parse_args()
 
+    if not args.command:
+        parser.print_help()
+        return
+
     if args.command == "scan":
         run_scan(args.repo, args.out, args.json, args.open)
+    elif args.command == "serve":
+        run_serve(args.repo, args.port, open_browser=not args.no_browser)
     elif args.command == "blast-radius":
         run_blast_radius(args.repo, args.changed, args.out, args.json, args.open)
     elif args.command == "git-diff":

@@ -17,6 +17,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify CLI Installation
+        run: |
+          pip install .
+          sentinel --help
+
       - name: Run Test Suite
         run: |
           make test

@@ -143,6 +143,20 @@ class TestSentinelCore(unittest.TestCase):
         self.assertIn("<svg id=\"canvas-svg\">", html)
         self.assertIn("const DATA =", html)
 
+    def test_cli_scan_json_and_out(self):
+        with open(os.path.join(self.test_dir, "a.py"), "w") as f:
+            f.write("import b\n")
+        with open(os.path.join(self.test_dir, "b.py"), "w") as f:
+            f.write("x = 1\n")
+
+        from sentinel import run_scan
+        out_file = os.path.join(self.test_dir, "graph.html")
+        run_scan(self.test_dir, out_html=out_file, as_json=False, open_browser=False)
+        self.assertTrue(os.path.exists(out_file))
+        with open(out_file, encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("<!DOCTYPE html>", content)
+
 
 if __name__ == "__main__":
     unittest.main()
