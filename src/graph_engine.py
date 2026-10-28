@@ -5,7 +5,7 @@ from src.types import BlastRadiusReport, CodeEdge, CodeNode, NodeKind
 
 
 class GraphEngine:
-    """In-memory high-concurrency directed graph engine for codebase blast radius."""
+    """In-memory high-concurrency directed graph engine for codebase blast radius and architecture."""
 
     def __init__(self, nodes: Dict[str, CodeNode], edges: List[CodeEdge]):
         self.nodes = nodes
@@ -43,7 +43,7 @@ class GraphEngine:
             if current_hop >= depth_limit:
                 continue
 
-            for upstream_id in self.reverse_adj.get(current_id, set()):
+            for upstream_id in sorted(self.reverse_adj.get(current_id, set())):
                 if upstream_id not in visited:
                     visited[upstream_id] = current_hop + 1
                     queue.append((upstream_id, current_hop + 1))
@@ -69,8 +69,8 @@ class GraphEngine:
         paths: List[List[str]] = []
 
         # Find shortest path from any starting node to critical targets
-        for target in critical_targets:
-            for start in starting_nodes:
+        for target in sorted(critical_targets):
+            for start in sorted(starting_nodes):
                 if start == target:
                     continue
                 path = self._shortest_path_reverse(start, target)
@@ -83,7 +83,6 @@ class GraphEngine:
 
     def _shortest_path_reverse(self, start: str, target: str) -> Optional[List[str]]:
         """Finds directed dependency chain: start -> intermediate -> ... -> target."""
-        # target imports start (directly or transitively)
         queue: deque[List[str]] = deque([[start]])
         seen = {start}
 
@@ -101,17 +100,21 @@ class GraphEngine:
 
         return None
 
-    def find_circular_dependencies(self) -> List[List[str]]:
-        """Detects circular dependency cycles in the codebase."""
+    def find_circular_dependencies(self, max_cycles: int = 50) -> List[List[str]]:
+        """Detects circular dependency cycles in the codebase with a bounded cycle limit."""
         cycles: List[List[str]] = []
         visited: Set[str] = set()
         rec_stack: List[str] = []
 
         def dfs(node_id: str):
+            if len(cycles) >= max_cycles:
+                return
             visited.add(node_id)
             rec_stack.append(node_id)
 
-            for neighbor in self.forward_adj.get(node_id, set()):
+            for neighbor in sorted(self.forward_adj.get(node_id, set())):
+                if len(cycles) >= max_cycles:
+                    break
                 if neighbor not in visited:
                     dfs(neighbor)
                 elif neighbor in rec_stack:
@@ -120,11 +123,42 @@ class GraphEngine:
 
             rec_stack.pop()
 
-        for node in self.nodes:
+        for node in sorted(self.nodes):
             if node not in visited:
                 dfs(node)
+                if len(cycles) >= max_cycles:
+                    break
 
         return cycles
+
+    def get_bottlenecks(self, top_n: int = 5) -> List[Tuple[str, int, NodeKind]]:
+        """Identifies top architectural bottlenecks (single points of failure / most imported nodes).
+
+        Returns list of tuples: (node_id, in_degree, node_kind)
+        """
+        sorted_nodes = sorted(
+            self.nodes.values(),
+            key=lambda n: (n.in_degree, n.importance_score),
+            reverse=True,
+        )
+        return [(n.id, n.in_degree, n.kind) for n in sorted_nodes[:top_n] if n.in_degree > 0]
+
+    def export_mermaid(self) -> str:
+        """Exports dependency graph as Mermaid markup."""
+        lines = ["graph TD;"]
+        for edge in self.edges:
+            s = edge.source.replace("/", "_").replace(".", "_").replace("-", "_")
+            t = edge.target.replace("/", "_").replace(".", "_").replace("-", "_")
+            lines.append(f"  {s} --> {t};")
+        return "\n".join(lines)
+
+    def export_dot(self) -> str:
+        """Exports dependency graph as Graphviz DOT format."""
+        lines = ["digraph G {", "  rankdir=LR;", "  node [shape=box, style=rounded];"]
+        for edge in self.edges:
+            lines.append(f'  "{edge.source}" -> "{edge.target}";')
+        lines.append("}")
+        return "\n".join(lines)
 
     def compute_blast_radius(
         self, changed_files: List[str], depth_limit: int = 6

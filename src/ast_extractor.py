@@ -22,17 +22,30 @@ IGNORE_DIRS = {
     "node_modules",
     "venv",
     ".venv",
+    "env",
+    ".env",
     "__pycache__",
     ".pytest_cache",
     ".next",
+    ".nuxt",
+    ".svelte-kit",
+    ".turbo",
     "dist",
     "build",
     "out",
-    ".turbo",
+    ".cache",
     ".idea",
     ".vscode",
+    ".gemini",
+    ".system_generated",
     "coverage",
+    "target",
+    "vendor",
+    "bin",
+    "obj",
 }
+
+MAX_FILE_SIZE_BYTES = 1024 * 1024  # 1 MB safeguard for minified bundles & big data blobs
 
 
 def strip_js_comments(content: str) -> str:
@@ -43,19 +56,34 @@ def strip_js_comments(content: str) -> str:
 
 
 class ASTExtractor:
-    def __init__(self, repo_root: str):
+    """Polyglot AST and dependency extractor for Python, TypeScript, and JavaScript."""
+
+    def __init__(self, repo_root: str, custom_ignores: Optional[List[str]] = None):
         self.repo_root = os.path.abspath(repo_root)
+        self.ignore_dirs = set(IGNORE_DIRS)
+        if custom_ignores:
+            self.ignore_dirs.update(custom_ignores)
         self.path_aliases = self._load_tsconfig_aliases()
 
     def _normalize(self, path: str) -> str:
         return path.replace("\\", "/").lstrip("./")
 
     def _load_tsconfig_aliases(self) -> Dict[str, str]:
-        """Loads tsconfig.json or jsconfig.json path mappings if present."""
+        """Loads tsconfig.json or jsconfig.json path mappings across repo and sub-packages."""
         aliases: Dict[str, str] = {}
-        for config_name in ("tsconfig.json", "jsconfig.json"):
-            cfg_path = os.path.join(self.repo_root, config_name)
+
+        # Scan root and immediate sub-apps (monorepo support)
+        candidate_configs = [
+            os.path.join(self.repo_root, "tsconfig.json"),
+            os.path.join(self.repo_root, "jsconfig.json"),
+            os.path.join(self.repo_root, "apps", "web", "tsconfig.json"),
+        ]
+
+        for cfg_path in candidate_configs:
             if os.path.isfile(cfg_path):
+                cfg_dir = os.path.relpath(os.path.dirname(cfg_path), self.repo_root).replace("\\", "/")
+                if cfg_dir == ".":
+                    cfg_dir = ""
                 try:
                     with open(cfg_path, "r", encoding="utf-8") as f:
                         raw = f.read()
@@ -70,58 +98,125 @@ class ASTExtractor:
                         if targets and isinstance(targets, list):
                             clean_alias = alias.rstrip("/*").rstrip("*")
                             clean_target = targets[0].rstrip("/*").rstrip("*")
-                            target_resolved = os.path.normpath(
-                                os.path.join(base_url, clean_target)
-                            ).replace("\\", "/")
-                            aliases[clean_alias] = target_resolved
+                            target_relative = os.path.normpath(
+                                os.path.join(cfg_dir, base_url, clean_target)
+                            ).replace("\\", "/").lstrip("./")
+                            aliases[clean_alias] = target_relative
                 except Exception:
                     pass
+
         # Default Next.js alias fallback if none found
         if "@" not in aliases:
             if os.path.isdir(os.path.join(self.repo_root, "src")):
                 aliases["@"] = "src"
+            elif os.path.isdir(os.path.join(self.repo_root, "apps", "web", "src")):
+                aliases["@"] = "apps/web/src"
             else:
                 aliases["@"] = ""
         return aliases
 
     def classify_node(self, rel_path: str) -> NodeKind:
+        """Determines the architectural role of a module using path and name semantics."""
         parts = rel_path.lower().replace("\\", "/").split("/")
         name = parts[-1]
+        stem = os.path.splitext(name)[0]
 
-        if "middleware" in name:
-            return NodeKind.MIDDLEWARE
-        if name.startswith("layout."):
-            return NodeKind.LAYOUT
-        if name in ("main.py", "app.py", "run.py", "server.py", "index.ts", "index.js"):
-            if len(parts) <= 2:
+        # 1. Entrypoint
+        if name in (
+            "main.py",
+            "app.py",
+            "run.py",
+            "server.py",
+            "index.ts",
+            "index.js",
+            "sentinel.py",
+            "cli.py",
+            "cli.ts",
+            "manage.py",
+            "wsgi.py",
+            "asgi.py",
+        ):
+            if len(parts) <= 3:
                 return NodeKind.ENTRYPOINT
-        if "test" in name or "test" in parts:
+        if len(parts) <= 2 and ("main" in stem or "app" in stem or "cli" in stem or "server" in stem):
+            return NodeKind.ENTRYPOINT
+
+        # 2. Middleware & Interceptors
+        if "middleware" in name or "interceptor" in name or "guard" in name or "middleware" in parts:
+            return NodeKind.MIDDLEWARE
+
+        # 3. Layouts & Templates
+        if name.startswith("layout.") or "layout" in parts or "shell" in name:
+            return NodeKind.LAYOUT
+
+        # 4. Tests & Benchmarks
+        if "test" in name or "test" in parts or "tests" in parts or "spec" in name or "eval" in name or "benchmark" in name:
             return NodeKind.TEST
-        if name.startswith("use") or "hook" in parts:
+
+        # 5. Hooks
+        if name.startswith("use") or "hook" in parts or "hooks" in parts:
             return NodeKind.HOOK
-        if "route" in name or "router" in name or "api" in parts:
+
+        # 6. Routers & APIs
+        if "route" in name or "router" in name or "routes" in parts or "routers" in parts or "api" in parts or "endpoint" in name:
             return NodeKind.ROUTER
-        if "model" in name or "schema" in name or "models" in parts or "types" in parts:
+
+        # 7. Models, Schemas & Types
+        if (
+            "model" in name
+            or "schema" in name
+            or "models" in parts
+            or "schemas" in parts
+            or "types" in name
+            or "types" in parts
+            or "entity" in name
+            or "entities" in parts
+            or "dto" in name
+        ):
             return NodeKind.MODEL
-        if "service" in name or "client" in name or "services" in parts:
+
+        # 8. Services, Engines, Agents, Parsers
+        if (
+            "service" in name
+            or "client" in name
+            or "services" in parts
+            or "engine" in name
+            or "extractor" in name
+            or "generator" in name
+            or "parser" in name
+            or "processor" in name
+            or "handler" in name
+            or "manager" in name
+            or "controller" in name
+            or "agent" in name
+            or "provider" in name
+            or "pipeline" in name
+        ):
             return NodeKind.SERVICE
-        if "config" in name or name.endswith(".config.js") or name.endswith(".config.ts"):
+
+        # 9. Configs
+        if "config" in name or "settings" in name or "constants" in name or name.endswith(".config.js") or name.endswith(".config.ts") or name.endswith(".config.mjs"):
             return NodeKind.CONFIG
-        if "component" in parts or name.endswith(".tsx") or name.endswith(".jsx"):
+
+        # 10. Components
+        if "component" in parts or "components" in parts or name.endswith(".tsx") or name.endswith(".jsx"):
             return NodeKind.COMPONENT
-        if "util" in name or "helper" in name or "lib" in parts or "utils" in parts:
+
+        # 11. Utilities & Shared Libs
+        if "util" in name or "helper" in name or "lib" in parts or "utils" in parts or "shared" in parts or "common" in parts or "tool" in name:
             return NodeKind.UTIL
 
         return NodeKind.OTHER
 
     def scan_repo(self) -> Tuple[Dict[str, CodeNode], List[CodeEdge]]:
+        """Walks repository, extracts AST imports, classifies roles, and builds dependency graph."""
         all_file_paths: Set[str] = set()
         nodes: Dict[str, CodeNode] = {}
         raw_imports_map: Dict[str, List[Tuple[str, EdgeKind, List[str]]]] = {}
 
         # 1. Walk repository and locate supported files
         for root, dirs, files in os.walk(self.repo_root):
-            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS and not d.startswith(".")]
+            dirs[:] = [d for d in dirs if d not in self.ignore_dirs and not d.startswith(".")]
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 if ext in SUPPORTED_EXTENSIONS:
@@ -135,9 +230,13 @@ class ASTExtractor:
             ext = os.path.splitext(rel_path)[1].lower()
             lang = SUPPORTED_EXTENSIONS[ext]
 
+            # File size safeguard against huge minified blobs
             try:
-                with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
+                if os.path.getsize(full_path) > MAX_FILE_SIZE_BYTES:
+                    content = ""
+                else:
+                    with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
             except Exception:
                 content = ""
 

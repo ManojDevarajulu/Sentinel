@@ -16,7 +16,7 @@
   <meta name="twitter:image" content="https://sentinel-teal-two.vercel.app/image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0a0a0b;
@@ -37,8 +37,8 @@
       --green: #2ed573;
       --amber: #ffa502;
       --purple: #a78bfa;
-      --font-head: 'Syne', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
+      --font-head: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
@@ -165,31 +165,31 @@
     /* TYPOGRAPHY & COMMON */
     h1 {
       font-family: var(--font-head);
-      font-size: 3.75rem;
+      font-size: 3.5rem;
       font-weight: 800;
-      line-height: 1.16;
-      letter-spacing: 0.01em;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
     }
     h2 {
       font-family: var(--font-head);
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       font-weight: 700;
-      line-height: 1.3;
-      letter-spacing: 0.01em;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
     }
     h3 {
       font-family: var(--font-head);
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: 0.01em;
+      letter-spacing: -0.015em;
       margin-bottom: 8px;
     }
     p {
       font-size: 15px;
       color: var(--text2);
-      line-height: 1.75;
-      letter-spacing: 0.01em;
+      line-height: 1.65;
+      letter-spacing: -0.01em;
     }
     .lime {
       color: var(--accent);
@@ -253,7 +253,7 @@
       color: var(--text2);
       max-width: 640px;
       margin: 1.25rem 0 2rem;
-      font-weight: 300;
+      font-weight: 400;
       line-height: 1.6;
     }
     .hero-actions {
@@ -328,7 +328,13 @@
       margin: 0 auto 3rem;
     }
     .stat-box { text-align: center; }
-    .stat-val { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+    .stat-val {
+      font-family: var(--font-head);
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+    }
     .stat-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-top: 4px; letter-spacing: 0.05em; }
 
     /* PREVIEW GRAPH CARD */
@@ -447,11 +453,15 @@
     }
     .node-chip {
       font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 600;
-      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 11px;
       border-radius: 6px;
-      border: 1px solid;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.04em;
     }
 
     /* COMPARISON TABLE */
@@ -616,6 +626,81 @@
       color: var(--text3);
       font-family: var(--font-mono);
     }
+
+    /* ANNOUNCEMENT BANNER */
+    .announcement-strip {
+      background: rgba(232, 255, 71, 0.05);
+      border-bottom: 1px solid rgba(232, 255, 71, 0.15);
+      padding: 10px 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text2);
+      flex-wrap: wrap;
+    }
+    .announcement-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .announcement-link:hover { text-decoration: underline; }
+
+    /* FILTER PILLS */
+    .filter-pills-bar {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-pill:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .filter-pill.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(232, 255, 71, 0.08);
+      font-weight: 600;
+    }
+    .btn-simulate-blast {
+      width: 100%;
+      background: rgba(255, 71, 87, 0.12);
+      border: 1px solid var(--red);
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-simulate-blast:hover {
+      background: rgba(255, 71, 87, 0.25);
+      box-shadow: 0 0 12px rgba(255, 71, 87, 0.4);
+    }
+
   </style>
 </head>
 <body>
@@ -643,6 +728,14 @@
       </a>
     </div>
   </header>
+
+  <div class="announcement-strip">
+    <span class="badge-pill" style="background:rgba(232,255,71,0.12); color:var(--accent); border-color:rgba(232,255,71,0.3); font-weight:700;">
+      SELECTED FOR XERJ PUBLIC CORPUS HUB
+    </span>
+    <span>Indexed by XERJ search engine as the public open reference AST blast-radius engine for AI coding agents.</span>
+    <a href="https://github.com/xerj-org/xerj" target="_blank" class="announcement-link">Explore Hub &rarr;</a>
+  </div>
 
   <!-- PANEL 1: OVERVIEW & CAPABILITIES -->
   <div class="tab-panel active" id="panel-overview">
@@ -835,14 +928,14 @@
       <div class="section-eyebrow">Visual Design Language</div>
       <h2 style="font-size:1.5rem; margin-bottom: 0.5rem;">Node Role Taxonomy & Color System</h2>
       <div class="node-chips">
-        <span class="node-chip" style="color:#ff4757; border-color:#ff4757; background:rgba(255,71,87,0.08);">MIDDLEWARE</span>
-        <span class="node-chip" style="color:#ffa502; border-color:#ffa502; background:rgba(255,165,2,0.08);">ENTRYPOINT</span>
-        <span class="node-chip" style="color:#47b8ff; border-color:#47b8ff; background:rgba(71,184,255,0.08);">LAYOUT</span>
-        <span class="node-chip" style="color:#2ed573; border-color:#2ed573; background:rgba(46,213,115,0.08);">ROUTER</span>
-        <span class="node-chip" style="color:#e8ff47; border-color:#e8ff47; background:rgba(232,255,71,0.08);">MODEL</span>
-        <span class="node-chip" style="color:#a78bfa; border-color:#a78bfa; background:rgba(167,139,250,0.08);">SERVICE</span>
-        <span class="node-chip" style="color:#2ed573; border-color:#2ed573; background:rgba(46,213,115,0.08);">COMPONENT</span>
-        <span class="node-chip" style="color:#8888a0; border-color:#8888a0; background:rgba(136,136,160,0.08);">UTIL</span>
+        <span class="node-chip" style="color:#ff6b7b; border-color:rgba(255,107,123,0.3); background:rgba(255,71,87,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#ff4757; opacity:0.85;"></span>MIDDLEWARE</span>
+        <span class="node-chip" style="color:#ffb347; border-color:rgba(255,179,71,0.3); background:rgba(255,165,2,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#ffa502; opacity:0.85;"></span>ENTRYPOINT</span>
+        <span class="node-chip" style="color:#64c8ff; border-color:rgba(100,200,255,0.3); background:rgba(71,184,255,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#47b8ff; opacity:0.85;"></span>LAYOUT</span>
+        <span class="node-chip" style="color:#4cd988; border-color:rgba(76,217,136,0.3); background:rgba(46,213,115,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#2ed573; opacity:0.85;"></span>ROUTER</span>
+        <span class="node-chip" style="color:#d8f044; border-color:rgba(216,240,68,0.3); background:rgba(232,255,71,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#e8ff47; opacity:0.85;"></span>MODEL</span>
+        <span class="node-chip" style="color:#bfa5ff; border-color:rgba(191,165,255,0.3); background:rgba(167,139,250,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#a78bfa; opacity:0.85;"></span>SERVICE</span>
+        <span class="node-chip" style="color:#4cd988; border-color:rgba(76,217,136,0.3); background:rgba(46,213,115,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#2ed573; opacity:0.85;"></span>COMPONENT</span>
+        <span class="node-chip" style="color:#9ca3af; border-color:rgba(156,163,175,0.3); background:rgba(136,136,160,0.08);"><span style="width:6px; height:6px; border-radius:50%; background:#8888a0; opacity:0.85;"></span>UTIL</span>
       </div>
     </div>
   </div>
@@ -857,13 +950,29 @@
             <option value="sentinel">Sentinel (Core Architecture)</option>
             <option value="intake">Intake AI (Clinical IDP Engine)</option>
             <option value="ledger">Ledger AI (Financial RAG Engine)</option>
+            <option value="enterprise">Large Enterprise Monorepo (52 Files / Microservices)</option>
             <option value="monorepo">Full-Stack Monorepo Fixture</option>
           </select>
           <input type="text" id="node-search" class="search-files" placeholder="Search files... (/)" oninput="filterNodes(this.value)" />
+          <div class="filter-pills-bar">
+            <button class="filter-pill active" onclick="filterRole('ALL')">All</button>
+            <button class="filter-pill" onclick="filterRole('ENTRYPOINT')">Entry</button>
+            <button class="filter-pill" onclick="filterRole('MIDDLEWARE')">Middleware</button>
+            <button class="filter-pill" onclick="filterRole('ROUTER')">Router</button>
+            <button class="filter-pill" onclick="filterRole('SERVICE')">Service</button>
+            <button class="filter-pill" onclick="filterRole('MODEL')">Model</button>
+            <button class="filter-pill" onclick="filterRole('COMPONENT')">Component</button>
+            <button class="filter-pill" onclick="filterRole('UTIL')">Util</button>
+          </div>
         </div>
         <div class="toolbar-right">
-          <button class="btn-tool" onclick="zoomIn()">Zoom In</button>
-          <button class="btn-tool" onclick="zoomOut()">Zoom Out</button>
+          <label class="btn-tool" style="cursor:pointer;" title="Upload custom Sentinel scan JSON">
+            <input type="file" id="json-input" accept=".json" style="display:none;" onchange="handleJsonUpload(event)">
+            <span>Upload JSON</span>
+          </label>
+          <button class="btn-tool" onclick="zoomIn()">+</button>
+          <button class="btn-tool" onclick="zoomOut()">-</button>
+          <button class="btn-tool" onclick="fitToScreen()">Fit Screen</button>
           <button class="btn-tool" onclick="resetTransform()">Reset</button>
           <button class="btn-tool" id="btn-export-mermaid" onclick="exportMermaid()">Copy Mermaid</button>
         </div>
@@ -906,8 +1015,17 @@
             <div class="meta-item"><div class="meta-val" id="ins-pagerank">0.0</div><div class="meta-lbl">PageRank Score</div></div>
           </div>
 
+          <button class="btn-simulate-blast" id="btn-sim-blast" onclick="simulateBlastFromDrawer()">
+            Audit Blast Radius Impact
+          </button>
+
           <div style="margin-top:12px; font-size:12px; line-height:1.6;" id="ins-desc">
             Click any node on the canvas to audit its reverse blast-radius reachability and critical propagation chain.
+          </div>
+
+          <div id="ins-paths-box" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+            <div class="mono" style="font-size:10px; color:var(--red); font-weight:700; margin-bottom:6px; letter-spacing:0.05em;">CRITICAL PROPAGATION PATHS</div>
+            <div id="ins-paths-content" class="mono" style="font-size:10px; color:var(--text); background:var(--bg); padding:8px 10px; border-radius:6px; border:1px solid var(--border); max-height:120px; overflow-y:auto; line-height:1.6;"></div>
           </div>
         </div>
       </div>
@@ -1030,6 +1148,1085 @@
   <script>
     // DATA REPOSITORIES
     const DATASETS = {
+      enterprise: {
+      "name": "Large Enterprise Monorepo (52 Files / Microservices)",
+      "nodes": [
+            {
+                  "id": "packages/db/schema.prisma",
+                  "label": "schema.prisma",
+                  "kind": "MODEL",
+                  "color": "#e8ff47",
+                  "x": 912,
+                  "y": 547,
+                  "loc": 180,
+                  "inDegree": 10,
+                  "outDegree": 0,
+                  "exports": [
+                        "UserModel",
+                        "TenantModel",
+                        "Subscription",
+                        "AuditLog",
+                        "ApiKey",
+                        "VectorDoc"
+                  ]
+            },
+            {
+                  "id": "packages/db/client.ts",
+                  "label": "client.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 857,
+                  "y": 654,
+                  "loc": 95,
+                  "inDegree": 8,
+                  "outDegree": 1,
+                  "exports": [
+                        "prismaClient",
+                        "executeRaw",
+                        "checkConnection"
+                  ]
+            },
+            {
+                  "id": "packages/db/vector.ts",
+                  "label": "vector.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 761,
+                  "y": 726,
+                  "loc": 140,
+                  "inDegree": 0,
+                  "outDegree": 1,
+                  "exports": [
+                        "VectorStore",
+                        "similaritySearch",
+                        "embedChunk"
+                  ]
+            },
+            {
+                  "id": "packages/types/auth.ts",
+                  "label": "auth.ts",
+                  "kind": "MODEL",
+                  "color": "#e8ff47",
+                  "x": 643,
+                  "y": 750,
+                  "loc": 65,
+                  "inDegree": 9,
+                  "outDegree": 0,
+                  "exports": [
+                        "SessionUser",
+                        "AuthToken",
+                        "RolePerms"
+                  ]
+            },
+            {
+                  "id": "packages/types/billing.ts",
+                  "label": "billing.ts",
+                  "kind": "MODEL",
+                  "color": "#e8ff47",
+                  "x": 527,
+                  "y": 720,
+                  "loc": 80,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "Invoice",
+                        "PaymentMethod",
+                        "PlanTier"
+                  ]
+            },
+            {
+                  "id": "packages/types/telemetry.ts",
+                  "label": "telemetry.ts",
+                  "kind": "MODEL",
+                  "color": "#e8ff47",
+                  "x": 435,
+                  "y": 643,
+                  "loc": 50,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "TraceEvent",
+                        "MetricPayload"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_users.ts",
+                  "label": "repo_users.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 385,
+                  "y": 533,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "UsersRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_tenants.ts",
+                  "label": "repo_tenants.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 388,
+                  "y": 413,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "TenantsRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_billing.ts",
+                  "label": "repo_billing.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 443,
+                  "y": 306,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "BillingRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_subscriptions.ts",
+                  "label": "repo_subscriptions.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 539,
+                  "y": 234,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "SubscriptionsRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_api_keys.ts",
+                  "label": "repo_api_keys.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 657,
+                  "y": 210,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "Api_keysRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_audit.ts",
+                  "label": "repo_audit.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 773,
+                  "y": 240,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AuditRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_vectors.ts",
+                  "label": "repo_vectors.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 865,
+                  "y": 317,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "VectorsRepo"
+                  ]
+            },
+            {
+                  "id": "packages/db/repo_notifications.ts",
+                  "label": "repo_notifications.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 915,
+                  "y": 427,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "NotificationsRepo"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_auth.ts",
+                  "label": "service_auth.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 956,
+                  "y": 713,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AuthService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_billing.ts",
+                  "label": "service_billing.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 825,
+                  "y": 823,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "BillingService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_ai_pipeline.ts",
+                  "label": "service_ai_pipeline.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 659,
+                  "y": 865,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "Ai_pipelineService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_stripe.ts",
+                  "label": "service_stripe.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 491,
+                  "y": 831,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "StripeService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_audit.ts",
+                  "label": "service_audit.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 355,
+                  "y": 727,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AuditService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_vector_search.ts",
+                  "label": "service_vector_search.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 277,
+                  "y": 574,
+                  "loc": 160,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "Vector_searchService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_notifications.ts",
+                  "label": "service_notifications.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 273,
+                  "y": 403,
+                  "loc": 160,
+                  "inDegree": 0,
+                  "outDegree": 2,
+                  "exports": [
+                        "NotificationsService"
+                  ]
+            },
+            {
+                  "id": "apps/api/service_webhook.ts",
+                  "label": "service_webhook.ts",
+                  "kind": "SERVICE",
+                  "color": "#a78bfa",
+                  "x": 344,
+                  "y": 247,
+                  "loc": 160,
+                  "inDegree": 0,
+                  "outDegree": 2,
+                  "exports": [
+                        "WebhookService"
+                  ]
+            },
+            {
+                  "id": "apps/api/middleware/auth_guard.ts",
+                  "label": "auth_guard.ts",
+                  "kind": "MIDDLEWARE",
+                  "color": "#ff4757",
+                  "x": 780,
+                  "y": 480,
+                  "loc": 75,
+                  "inDegree": 6,
+                  "outDegree": 0,
+                  "exports": [
+                        "authGuard",
+                        "verifyJwt"
+                  ]
+            },
+            {
+                  "id": "apps/api/middleware/rate_limiter.ts",
+                  "label": "rate_limiter.ts",
+                  "kind": "MIDDLEWARE",
+                  "color": "#ff4757",
+                  "x": 731,
+                  "y": 582,
+                  "loc": 60,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "rateLimiter",
+                        "checkQuota"
+                  ]
+            },
+            {
+                  "id": "apps/api/middleware/telemetry.ts",
+                  "label": "telemetry.ts",
+                  "kind": "MIDDLEWARE",
+                  "color": "#ff4757",
+                  "x": 621,
+                  "y": 607,
+                  "loc": 45,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "traceRequest"
+                  ]
+            },
+            {
+                  "id": "apps/web/middleware.ts",
+                  "label": "middleware.ts",
+                  "kind": "MIDDLEWARE",
+                  "color": "#ff4757",
+                  "x": 533,
+                  "y": 536,
+                  "loc": 55,
+                  "inDegree": 0,
+                  "outDegree": 1,
+                  "exports": [
+                        "webMiddleware"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_auth.ts",
+                  "label": "router_auth.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 475,
+                  "y": 137,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AuthRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_billing.ts",
+                  "label": "router_billing.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 641,
+                  "y": 95,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "BillingRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_ai.ts",
+                  "label": "router_ai.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 809,
+                  "y": 129,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AiRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_search.ts",
+                  "label": "router_search.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 945,
+                  "y": 233,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "SearchRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_admin.ts",
+                  "label": "router_admin.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 1023,
+                  "y": 386,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "AdminRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/router_webhooks.ts",
+                  "label": "router_webhooks.ts",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 1027,
+                  "y": 557,
+                  "loc": 130,
+                  "inDegree": 1,
+                  "outDegree": 2,
+                  "exports": [
+                        "WebhooksRouter"
+                  ]
+            },
+            {
+                  "id": "apps/api/main.py",
+                  "label": "main.py",
+                  "kind": "ENTRYPOINT",
+                  "color": "#ffa502",
+                  "x": 533,
+                  "y": 424,
+                  "loc": 140,
+                  "inDegree": 0,
+                  "outDegree": 8,
+                  "exports": [
+                        "app",
+                        "lifespan",
+                        "create_app"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/layout.tsx",
+                  "label": "layout.tsx",
+                  "kind": "LAYOUT",
+                  "color": "#47b8ff",
+                  "x": 621,
+                  "y": 353,
+                  "loc": 90,
+                  "inDegree": 0,
+                  "outDegree": 1,
+                  "exports": [
+                        "RootLayout"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/page.tsx",
+                  "label": "page.tsx",
+                  "kind": "ENTRYPOINT",
+                  "color": "#ffa502",
+                  "x": 731,
+                  "y": 378,
+                  "loc": 110,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "HomePage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/dashboard/page.tsx",
+                  "label": "dashboard/page.tsx",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 899,
+                  "y": 914,
+                  "loc": 150,
+                  "inDegree": 0,
+                  "outDegree": 7,
+                  "exports": [
+                        "DashboardPage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/settings/page.tsx",
+                  "label": "settings/page.tsx",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 314,
+                  "y": 851,
+                  "loc": 150,
+                  "inDegree": 0,
+                  "outDegree": 4,
+                  "exports": [
+                        "SettingsPage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/analytics/page.tsx",
+                  "label": "analytics/page.tsx",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 194,
+                  "y": 275,
+                  "loc": 150,
+                  "inDegree": 0,
+                  "outDegree": 5,
+                  "exports": [
+                        "AnalyticsPage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/billing/page.tsx",
+                  "label": "billing/page.tsx",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 704,
+                  "y": -17,
+                  "loc": 150,
+                  "inDegree": 0,
+                  "outDegree": 4,
+                  "exports": [
+                        "BillingPage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/app/explorer/page.tsx",
+                  "label": "explorer/page.tsx",
+                  "kind": "ROUTER",
+                  "color": "#2ed573",
+                  "x": 1139,
+                  "y": 377,
+                  "loc": 150,
+                  "inDegree": 0,
+                  "outDegree": 4,
+                  "exports": [
+                        "ExplorerPage"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/DataGrid.tsx",
+                  "label": "DataGrid.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 1054,
+                  "y": 701,
+                  "loc": 120,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "DataGrid"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/MetricsCard.tsx",
+                  "label": "MetricsCard.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 889,
+                  "y": 873,
+                  "loc": 120,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "MetricsCard"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/AuthModal.tsx",
+                  "label": "AuthModal.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 661,
+                  "y": 940,
+                  "loc": 120,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "AuthModal"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/SearchBox.tsx",
+                  "label": "SearchBox.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 429,
+                  "y": 884,
+                  "loc": 120,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "SearchBox"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/SideNav.tsx",
+                  "label": "SideNav.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 257,
+                  "y": 719,
+                  "loc": 120,
+                  "inDegree": 5,
+                  "outDegree": 0,
+                  "exports": [
+                        "SideNav"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/Header.tsx",
+                  "label": "Header.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 190,
+                  "y": 491,
+                  "loc": 120,
+                  "inDegree": 5,
+                  "outDegree": 0,
+                  "exports": [
+                        "Header"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/RiskBadge.tsx",
+                  "label": "RiskBadge.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 246,
+                  "y": 259,
+                  "loc": 120,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "RiskBadge"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/components/ExportModal.tsx",
+                  "label": "ExportModal.tsx",
+                  "kind": "COMPONENT",
+                  "color": "#2ed573",
+                  "x": 411,
+                  "y": 87,
+                  "loc": 120,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "ExportModal"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/hooks/useSession.ts",
+                  "label": "useSession.ts",
+                  "kind": "HOOK",
+                  "color": "#47b8ff",
+                  "x": 639,
+                  "y": 20,
+                  "loc": 85,
+                  "inDegree": 6,
+                  "outDegree": 0,
+                  "exports": [
+                        "useSession"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/hooks/useAnalytics.ts",
+                  "label": "useAnalytics.ts",
+                  "kind": "HOOK",
+                  "color": "#47b8ff",
+                  "x": 871,
+                  "y": 76,
+                  "loc": 70,
+                  "inDegree": 1,
+                  "outDegree": 0,
+                  "exports": [
+                        "useAnalytics"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/lib/api_client.ts",
+                  "label": "api_client.ts",
+                  "kind": "UTIL",
+                  "color": "#8888a0",
+                  "x": 1043,
+                  "y": 241,
+                  "loc": 115,
+                  "inDegree": 5,
+                  "outDegree": 1,
+                  "exports": [
+                        "apiClient",
+                        "request"
+                  ]
+            },
+            {
+                  "id": "apps/web/src/lib/formatters.ts",
+                  "label": "formatters.ts",
+                  "kind": "UTIL",
+                  "color": "#8888a0",
+                  "x": 1110,
+                  "y": 469,
+                  "loc": 40,
+                  "inDegree": 0,
+                  "outDegree": 0,
+                  "exports": [
+                        "formatCurrency",
+                        "formatDate"
+                  ]
+            }
+      ],
+      "edges": [
+            {
+                  "source": "packages/db/client.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/vector.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_users.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_users.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_tenants.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_tenants.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_billing.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_billing.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_subscriptions.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_subscriptions.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_api_keys.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_api_keys.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_audit.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_audit.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_vectors.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_vectors.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "packages/db/repo_notifications.ts",
+                  "target": "packages/db/schema.prisma"
+            },
+            {
+                  "source": "packages/db/repo_notifications.ts",
+                  "target": "packages/db/client.ts"
+            },
+            {
+                  "source": "apps/api/service_auth.ts",
+                  "target": "packages/db/repo_users.ts"
+            },
+            {
+                  "source": "apps/api/service_auth.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_billing.ts",
+                  "target": "packages/db/repo_tenants.ts"
+            },
+            {
+                  "source": "apps/api/service_billing.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_ai_pipeline.ts",
+                  "target": "packages/db/repo_billing.ts"
+            },
+            {
+                  "source": "apps/api/service_ai_pipeline.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_stripe.ts",
+                  "target": "packages/db/repo_subscriptions.ts"
+            },
+            {
+                  "source": "apps/api/service_stripe.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_audit.ts",
+                  "target": "packages/db/repo_api_keys.ts"
+            },
+            {
+                  "source": "apps/api/service_audit.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_vector_search.ts",
+                  "target": "packages/db/repo_audit.ts"
+            },
+            {
+                  "source": "apps/api/service_vector_search.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_notifications.ts",
+                  "target": "packages/db/repo_vectors.ts"
+            },
+            {
+                  "source": "apps/api/service_notifications.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/service_webhook.ts",
+                  "target": "packages/db/repo_notifications.ts"
+            },
+            {
+                  "source": "apps/api/service_webhook.ts",
+                  "target": "packages/types/auth.ts"
+            },
+            {
+                  "source": "apps/api/router_auth.ts",
+                  "target": "apps/api/service_auth.ts"
+            },
+            {
+                  "source": "apps/api/router_auth.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/router_billing.ts",
+                  "target": "apps/api/service_billing.ts"
+            },
+            {
+                  "source": "apps/api/router_billing.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/router_ai.ts",
+                  "target": "apps/api/service_ai_pipeline.ts"
+            },
+            {
+                  "source": "apps/api/router_ai.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/router_search.ts",
+                  "target": "apps/api/service_stripe.ts"
+            },
+            {
+                  "source": "apps/api/router_search.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/router_admin.ts",
+                  "target": "apps/api/service_audit.ts"
+            },
+            {
+                  "source": "apps/api/router_admin.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/router_webhooks.ts",
+                  "target": "apps/api/service_vector_search.ts"
+            },
+            {
+                  "source": "apps/api/router_webhooks.ts",
+                  "target": "apps/api/middleware/auth_guard.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_auth.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_billing.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_ai.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_search.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_admin.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/router_webhooks.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/middleware/telemetry.ts"
+            },
+            {
+                  "source": "apps/api/main.py",
+                  "target": "apps/api/middleware/rate_limiter.ts"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/lib/api_client.ts"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/components/Header.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/components/SideNav.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/settings/page.tsx",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/app/settings/page.tsx",
+                  "target": "apps/web/src/lib/api_client.ts"
+            },
+            {
+                  "source": "apps/web/src/app/settings/page.tsx",
+                  "target": "apps/web/src/components/Header.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/settings/page.tsx",
+                  "target": "apps/web/src/components/SideNav.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/analytics/page.tsx",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/app/analytics/page.tsx",
+                  "target": "apps/web/src/lib/api_client.ts"
+            },
+            {
+                  "source": "apps/web/src/app/analytics/page.tsx",
+                  "target": "apps/web/src/components/Header.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/analytics/page.tsx",
+                  "target": "apps/web/src/components/SideNav.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/billing/page.tsx",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/app/billing/page.tsx",
+                  "target": "apps/web/src/lib/api_client.ts"
+            },
+            {
+                  "source": "apps/web/src/app/billing/page.tsx",
+                  "target": "apps/web/src/components/Header.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/billing/page.tsx",
+                  "target": "apps/web/src/components/SideNav.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/explorer/page.tsx",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/app/explorer/page.tsx",
+                  "target": "apps/web/src/lib/api_client.ts"
+            },
+            {
+                  "source": "apps/web/src/app/explorer/page.tsx",
+                  "target": "apps/web/src/components/Header.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/explorer/page.tsx",
+                  "target": "apps/web/src/components/SideNav.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/components/DataGrid.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/components/MetricsCard.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/dashboard/page.tsx",
+                  "target": "apps/web/src/components/RiskBadge.tsx"
+            },
+            {
+                  "source": "apps/web/src/app/analytics/page.tsx",
+                  "target": "apps/web/src/hooks/useAnalytics.ts"
+            },
+            {
+                  "source": "apps/web/src/app/layout.tsx",
+                  "target": "apps/web/src/app/page.tsx"
+            },
+            {
+                  "source": "apps/web/middleware.ts",
+                  "target": "apps/web/src/hooks/useSession.ts"
+            },
+            {
+                  "source": "apps/web/src/lib/api_client.ts",
+                  "target": "packages/types/auth.ts"
+            }
+      ]
+},
       sentinel: {
         name: "Sentinel (Core Architecture)",
         nodes: [
@@ -1464,6 +2661,116 @@
 
       renderPreviewCanvas();
     });
+
+    let activeRoleFilter = "ALL";
+
+    function filterRole(role) {
+      activeRoleFilter = role;
+      document.querySelectorAll(".filter-pill").forEach(p => {
+        p.classList.toggle("active", p.textContent.trim().toUpperCase() === role || (role === "ALL" && p.textContent.trim() === "All"));
+      });
+
+      activeData.nodes.forEach(n => {
+        const el = document.getElementById(`node-${n.id}`);
+        if (!el) return;
+        if (role === "ALL" || n.kind === role) {
+          el.style.opacity = "1";
+        } else {
+          el.style.opacity = "0.2";
+        }
+      });
+    }
+
+    function fitToScreen() {
+      if (!activeData.nodes || activeData.nodes.length === 0) return;
+      const xs = activeData.nodes.map(n => n.x);
+      const ys = activeData.nodes.map(n => n.y);
+      const minX = Math.min(...xs) - 60;
+      const maxX = Math.max(...xs) + 60;
+      const minY = Math.min(...ys) - 60;
+      const maxY = Math.max(...ys) + 60;
+
+      const graphWidth = maxX - minX;
+      const graphHeight = maxY - minY;
+      const containerWidth = window.innerWidth - 380;
+      const containerHeight = window.innerHeight - 80;
+
+      const scaleX = containerWidth / graphWidth;
+      const scaleY = containerHeight / graphHeight;
+      scale = Math.min(1.4, Math.max(0.25, Math.min(scaleX, scaleY) * 0.88));
+
+      const midX = (minX + maxX) / 2;
+      const midY = (minY + maxY) / 2;
+      translateX = (containerWidth / 2) - (midX * scale);
+      translateY = (containerHeight / 2) - (midY * scale);
+
+      updateTransform();
+    }
+
+    function simulateBlastFromDrawer() {
+      if (!selectedId) return;
+      selectNode(selectedId);
+      const btn = document.getElementById("btn-sim-blast");
+      if (btn) {
+        btn.textContent = "Blast Radius Evaluated";
+        setTimeout(() => { btn.textContent = "Audit Blast Radius Impact"; }, 1500);
+      }
+    }
+
+    function handleJsonUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (parsed.nodes && parsed.edges) {
+            // Compute positions if not present
+            let nodesWithPos = parsed.nodes;
+            const cx = 650, cy = 480;
+            nodesWithPos.forEach((n, idx) => {
+              if (n.x === undefined || n.y === undefined) {
+                const angle = (2 * Math.PI / nodesWithPos.length) * idx;
+                const r = 260 + (idx % 3) * 110;
+                n.x = Math.round(cx + r * Math.cos(angle));
+                n.y = Math.round(cy + r * Math.sin(angle));
+              }
+              if (!n.color) {
+                const colors = { ENTRYPOINT:"#ffa502", MIDDLEWARE:"#ff4757", LAYOUT:"#47b8ff", ROUTER:"#2ed573", MODEL:"#e8ff47", SERVICE:"#a78bfa", COMPONENT:"#2ed573", UTIL:"#8888a0" };
+                n.color = colors[n.kind] || "#8888a0";
+              }
+              if (!n.label) n.label = n.id.split("/").pop();
+            });
+
+            DATASETS.custom = {
+              name: parsed.repo_name || file.name.replace(".json", ""),
+              nodes: nodesWithPos,
+              edges: parsed.edges
+            };
+
+            const sel = document.getElementById("repo-select");
+            let opt = document.getElementById("opt-custom");
+            if (!opt) {
+              opt = document.createElement("option");
+              opt.id = "opt-custom";
+              opt.value = "custom";
+              sel.prepend(opt);
+            }
+            opt.textContent = `Custom: ${DATASETS.custom.name} (${parsed.nodes.length} files)`;
+            sel.value = "custom";
+            activeData = DATASETS.custom;
+            renderMainCanvas();
+            fitToScreen();
+          } else {
+            alert("Invalid Sentinel JSON: Must contain 'nodes' and 'edges' arrays.");
+          }
+        } catch(err) {
+          alert("Error parsing JSON file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
   </script>
 </body>
 </html>

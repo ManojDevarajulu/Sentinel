@@ -85,7 +85,7 @@ class ViewerGenerator:
   <title>{title} — Sentinel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {{
       --bg: #0a0a0b;
@@ -103,8 +103,8 @@ class ViewerGenerator:
       --critical: #ff4757;
       --warning: #ffa502;
       --safe: #2ed573;
-      --font-head: 'Syne', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
+      --font-head: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -682,19 +682,18 @@ class ViewerGenerator:
 </html>"""
 
     def _compute_layout(self) -> Dict[str, Dict[str, float]]:
-        """Topological radial layout for clean visual placement without node overlap."""
+        """Adaptive topological multi-tier layout for clear visualization across small and large codebases."""
         positions: Dict[str, Dict[str, float]] = {}
         node_ids = list(self.nodes.keys())
         total = len(node_ids)
         if total == 0:
             return positions
 
-        # Categorize into rings based on node kind
         core_ring = []
         middle_ring = []
         outer_ring = []
 
-        for nid, node in self.nodes.items():
+        for nid, node in sorted(self.nodes.items()):
             if node.kind in (NodeKind.ENTRYPOINT, NodeKind.MIDDLEWARE, NodeKind.LAYOUT):
                 core_ring.append(nid)
             elif node.kind in (NodeKind.ROUTER, NodeKind.SERVICE, NodeKind.MODEL):
@@ -702,37 +701,32 @@ class ViewerGenerator:
             else:
                 outer_ring.append(nid)
 
-        center_x = 600
-        center_y = 450
+        center_x = 650
+        center_y = 480
 
-        # Place Core Ring
-        if core_ring:
-            radius = 120
-            step = (2 * math.pi) / len(core_ring)
-            for i, nid in enumerate(core_ring):
-                positions[nid] = {
-                    "x": center_x + radius * math.cos(i * step),
-                    "y": center_y + radius * math.sin(i * step),
-                }
+        def place_ring_nodes(ring_nodes: List[str], base_radius: float, base_phase: float = 0.0):
+            if not ring_nodes:
+                return
+            n = len(ring_nodes)
+            track_size = 16
+            tracks = [ring_nodes[i : i + track_size] for i in range(0, n, track_size)]
+            for track_idx, track in enumerate(tracks):
+                r = base_radius + (track_idx * 125)
+                step = (2 * math.pi) / len(track)
+                phase = base_phase + (track_idx * 0.35)
+                for i, nid in enumerate(track):
+                    angle = phase + (i * step)
+                    positions[nid] = {
+                        "x": round(center_x + r * math.cos(angle), 1),
+                        "y": round(center_y + r * math.sin(angle), 1),
+                    }
 
-        # Place Middle Ring
-        if middle_ring:
-            radius = 280
-            step = (2 * math.pi) / len(middle_ring)
-            for i, nid in enumerate(middle_ring):
-                positions[nid] = {
-                    "x": center_x + radius * math.cos(i * step + 0.3),
-                    "y": center_y + radius * math.sin(i * step + 0.3),
-                }
-
-        # Place Outer Ring
-        if outer_ring:
-            radius = 480
-            step = (2 * math.pi) / len(outer_ring)
-            for i, nid in enumerate(outer_ring):
-                positions[nid] = {
-                    "x": center_x + radius * math.cos(i * step + 0.6),
-                    "y": center_y + radius * math.sin(i * step + 0.6),
-                }
+        place_ring_nodes(core_ring, base_radius=130, base_phase=0.0)
+        core_depth = ((len(core_ring) - 1) // 16) if core_ring else 0
+        mid_base = 290 + (core_depth * 125)
+        place_ring_nodes(middle_ring, base_radius=mid_base, base_phase=0.3)
+        mid_depth = ((len(middle_ring) - 1) // 16) if middle_ring else 0
+        out_base = mid_base + 210 + (mid_depth * 125)
+        place_ring_nodes(outer_ring, base_radius=out_base, base_phase=0.6)
 
         return positions

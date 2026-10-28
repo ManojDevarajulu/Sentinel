@@ -157,6 +157,70 @@ class TestSentinelCore(unittest.TestCase):
             content = f.read()
         self.assertIn("<!DOCTYPE html>", content)
 
+    def test_large_repository_graph_and_bottlenecks(self):
+        """Generates a 50-file synthetic repository and tests scalability and bottleneck identification."""
+        os.makedirs(os.path.join(self.test_dir, "core"), exist_ok=True)
+        os.makedirs(os.path.join(self.test_dir, "services"), exist_ok=True)
+        os.makedirs(os.path.join(self.test_dir, "api"), exist_ok=True)
+
+        # Core types file - should become top bottleneck
+        with open(os.path.join(self.test_dir, "core", "types.py"), "w") as f:
+            f.write("class BaseEntity:\n    pass\n")
+
+        # Create 20 service modules all importing core/types.py
+        for i in range(20):
+            with open(os.path.join(self.test_dir, "services", f"service_{i}.py"), "w") as f:
+                f.write(f"from core.types import BaseEntity\ndef execute_{i}(): pass\n")
+
+        # Create 20 API route modules importing corresponding service
+        for i in range(20):
+            with open(os.path.join(self.test_dir, "api", f"route_{i}.py"), "w") as f:
+                f.write(f"from services.service_{i} import execute_{i}\n")
+
+        # Entrypoint importing all routes
+        route_imports = "\n".join([f"from api.route_{i} import route_{i}" for i in range(10)])
+        with open(os.path.join(self.test_dir, "server.py"), "w") as f:
+            f.write(f"{route_imports}\ndef run_app(): pass\n")
+
+        extractor = ASTExtractor(self.test_dir)
+        nodes, edges = extractor.scan_repo()
+        engine = GraphEngine(nodes, edges)
+
+        self.assertGreaterEqual(len(nodes), 41)
+        self.assertGreaterEqual(len(edges), 40)
+
+        # Verify bottlenecks: core/types.py must have 20 incoming imports
+        bottlenecks = engine.get_bottlenecks(top_n=3)
+        self.assertTrue(len(bottlenecks) > 0)
+        top_node, in_deg, role = bottlenecks[0]
+        self.assertEqual(top_node, "core/types.py")
+        self.assertEqual(in_deg, 20)
+        self.assertEqual(role, NodeKind.MODEL)
+
+        # Reverse BFS from core/types.py must reach services, routes, and server
+        report = engine.compute_blast_radius(["core/types.py"])
+        self.assertGreaterEqual(report.blast_radius_count, 30)
+        self.assertEqual(report.risk_level, "CRITICAL")
+
+    def test_custom_ignores_and_exports(self):
+        # Create ignored folder
+        os.makedirs(os.path.join(self.test_dir, "custom_fixtures"), exist_ok=True)
+        with open(os.path.join(self.test_dir, "custom_fixtures", "mock.py"), "w") as f:
+            f.write("x = 1\n")
+        with open(os.path.join(self.test_dir, "main.py"), "w") as f:
+            f.write("def run(): pass\n")
+
+        extractor = ASTExtractor(self.test_dir, custom_ignores=["custom_fixtures"])
+        nodes, edges = extractor.scan_repo()
+        self.assertNotIn("custom_fixtures/mock.py", nodes)
+        self.assertIn("main.py", nodes)
+
+        engine = GraphEngine(nodes, edges)
+        mermaid = engine.export_mermaid()
+        dot = engine.export_dot()
+        self.assertTrue(mermaid.startswith("graph TD;"))
+        self.assertTrue(dot.startswith("digraph G {"))
+
 
 if __name__ == "__main__":
     unittest.main()
